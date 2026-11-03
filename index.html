@@ -2,75 +2,48 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>HSK 3 Bài 2 — 他什么时候回来 | Game học tiếng Trung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSK Quest Master - RPG Chinese Learning Game</title>
   
-  <meta name="description" content="Game 4 level ôn HSK 3 Bài 2: nối từ vựng, trắc nghiệm bài khóa, điền từ ngữ pháp, dịch câu, có bảng xếp hạng." />
-  <meta property="og:title" content="HSK 3 Bài 2 — 他什么时候回来 | Game học tiếng Trung" />
-  <meta property="og:description" content="Nối từ, trắc nghiệm, điền từ, dịch câu — leo bảng xếp hạng!" />
-  <meta property="og:type" content="website" />
-  
+  <meta name="description" content="Chinh phục HSK 1 - 4 dễ dàng với HSK Quest Master: Flashcard 3D, Quiz Quest, Ghép từ & Speed Run 30s!" />
   <link rel="icon" href="./favicon.ico" type="image/x-icon" />
-  
-  <!-- Google Fonts: Baloo 2 + Noto Sans SC -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet" />
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          colors: {
-            foreground: '#222230',
-            background: '#fdfaf5',
-            card: '#ffffff',
-            primary: {
-              DEFAULT: '#f04e38',
-              foreground: '#ffffff'
-            },
-            secondary: {
-              DEFAULT: '#ffde59',
-              foreground: '#222230'
-            },
-            muted: {
-              DEFAULT: '#eee7dd',
-              foreground: '#736c64'
-            },
-            accent: {
-              DEFAULT: '#6ecbf5',
-              foreground: '#1c3245'
-            },
-            success: {
-              DEFAULT: '#38d39f',
-              foreground: '#093f2f'
-            },
-            destructive: {
-              DEFAULT: '#f43f5e',
-              foreground: '#ffffff'
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(6px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
             }
           },
-          fontFamily: {
-            display: ['"Baloo 2"', 'system-ui', 'sans-serif'],
-            hz: ['"Noto Sans SC"', '"Baloo 2"', 'sans-serif']
+          animation: {
+            fadeIn: 'fadeIn 0.3s ease-out'
           }
         }
       }
     };
   </script>
-  
-  <!-- Custom Game Styling -->
-  <link rel="stylesheet" href="./css/game.css" />
-</head>
-<body class="bg-background text-foreground antialiased selection:bg-secondary">
-  <div id="app"></div>
 
-  <!-- Game Bootstrap -->
-  <script type="module">
-    import { initGame } from './js/game.js';
-    window.addEventListener('DOMContentLoaded', initGame);
+  <!-- Import Maps for Modern ES Modules (React 18 & Lucide Icons) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.460.0?external=react"
+      }
+    }
   </script>
+</head>
+<body class="antialiased selection:bg-red-500 selection:text-white">
+  <div id="root"></div>
+
+  <!-- Main Application Script -->
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>

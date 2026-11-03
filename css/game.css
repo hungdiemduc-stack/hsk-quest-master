@@ -1,0 +1,211 @@
+:root {
+  --radius: 1rem;
+  --background: #fdfaf5;
+  --foreground: #222230;
+  --card: #ffffff;
+  --card-foreground: #222230;
+  --primary: #f04e38;
+  --primary-foreground: #ffffff;
+  --secondary: #ffde59;
+  --secondary-foreground: #222230;
+  --muted: #eee7dd;
+  --muted-foreground: #736c64;
+  --accent: #6ecbf5;
+  --accent-foreground: #1c3245;
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+  --success: #38d39f;
+  --success-foreground: #093f2f;
+  --border: #222230;
+  --font-display: 'Baloo 2', system-ui, -apple-system, sans-serif;
+  --font-hz: 'Noto Sans SC', 'Baloo 2', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-display);
+  color: var(--foreground);
+  background-color: var(--background);
+  min-height: 100vh;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow-x: hidden;
+}
+
+.game-bg {
+  background: 
+    radial-gradient(circle at 20% 0%, rgba(254, 215, 170, 0.45) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(186, 230, 253, 0.45) 0%, transparent 50%),
+    var(--background);
+  min-height: 100vh;
+}
+
+/* Font helpers */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-hz {
+  font-family: var(--font-hz);
+}
+
+/* Chunky retro aesthetics */
+.border-4 {
+  border: 4px solid var(--foreground);
+}
+
+.border-2 {
+  border: 2px solid var(--foreground);
+}
+
+.border-dashed-4 {
+  border: 4px dashed var(--foreground);
+}
+
+.shadow-chunky {
+  box-shadow: 0 5px 0 var(--foreground);
+}
+
+.shadow-chunky-sm {
+  box-shadow: 0 3px 0 var(--foreground);
+}
+
+.shadow-chunky-lg {
+  box-shadow: 0 8px 0 var(--foreground);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--foreground) !important;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Level Theme Colors */
+.lvl-1 { background-color: #a7f3d0; }
+.lvl-2 { background-color: #bae6fd; }
+.lvl-3 { background-color: #fef08a; }
+.lvl-4 { background-color: #fecdd3; }
+
+/* Utilities */
+.bg-card { background-color: var(--card); }
+.bg-primary { background-color: var(--primary); }
+.text-primary { color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.bg-secondary { background-color: var(--secondary); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.bg-accent { background-color: var(--accent); }
+.text-accent-foreground { color: var(--accent-foreground); }
+.bg-success { background-color: var(--success); }
+.text-success-foreground { color: var(--success-foreground); }
+.bg-destructive { background-color: var(--destructive); }
+.text-destructive-foreground { color: var(--destructive-foreground); }
+.bg-muted { background-color: var(--muted); }
+.text-muted-foreground { color: var(--muted-foreground); }
+
+/* Keyframe Animations */
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-8px, 0); }
+  75% { transform: translate(8px, 0); }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(1.35);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  50% { transform: rotate(5deg) scale(1.08); }
+}
+
+@keyframes run {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-4px) rotate(3deg); }
+}
+
+@keyframes jump {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-34px) scale(1.05); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes hurt {
+  0%, 100% { filter: none; transform: translate(0); }
+  25% { filter: grayscale(1) brightness(1.4); transform: translate(-6px); }
+  75% { filter: grayscale(1) brightness(1.4); transform: translate(6px); }
+}
+
+@keyframes cloud {
+  0% { transform: translateX(-12px); }
+  100% { transform: translateX(12px); }
+}
+
+@keyframes coin {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-shake { animation: 0.35s shake ease-in-out; }
+.animate-float-up { animation: 0.9s ease-out forwards float-up; }
+.animate-wiggle { animation: 2.4s ease-in-out infinite wiggle; }
+.animate-run { animation: 0.5s ease-in-out infinite run; }
+.animate-jump { animation: 0.6s ease-out jump; }
+.animate-hurt { animation: 0.6s hurt ease-in-out; }
+.animate-cloud { animation: 5s ease-in-out infinite alternate cloud; }
+.animate-cloud-slow { animation: 8s ease-in-out infinite alternate-reverse cloud; }
+.animate-coin { animation: 1.2s ease-in-out infinite coin; }
+.animate-fade-in { animation: 0.3s ease-out fadeIn; }
+.animate-scale-in { animation: 0.35s ease-out scaleIn; }
+
+/* Runner track ground styling */
+.track-ground {
+  background: repeating-linear-gradient(
+    90deg,
+    #d97706 0 26px,
+    #b45309 26px 52px
+  );
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 9999px;
+}

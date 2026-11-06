@@ -1,6 +1,35 @@
 # 🎮 HSK Quest Master - RPG Chinese Learning Game
 
-Trò chơi học và luyện thi tiếng Trung tương tác phong cách RPG, tích hợp đầy đủ bộ từ vựng chuẩn **1.201 từ vựng HSK 1, HSK 2, HSK 3, HSK 4** trích xuất từ dữ liệu chuẩn [tiengtrungonline.com](https://tiengtrungonline.com/).
+Trò chơi học và luyện thi tiếng Trung tương tác phong cách RPG, tích hợp trọn bộ **1.201 từ vựng HSK 1 đến HSK 4** kèm **Trợ lý AI ảo luyện khẩu ngữ (小华老师 - Cô giáo Tiểu Hoa)** giúp người học cải thiện toàn diện kỹ năng giao tiếp tiếng Trung!
+
+---
+
+## 🌟 Tính năng mới nổi bật
+
+### 🤖 1. Trợ lý AI ảo Tiểu Hoa (小华老师) - Luyện khẩu ngữ 24/7
+- **Hộp thoại Chatbox thông minh**: Mở bất kỳ lúc nào qua nút nổi `Chat AI Tiểu Hoa 👩‍🏫` ở góc màn hình hoặc chế độ `AI Đối Thoại` trên trang chủ.
+- **Hiển thị 3 tầng trực quan**:
+  - 🇨🇳 **Chữ Hán (Hanzi)**: Rõ ràng, tự nhiên theo văn phong bản xứ.
+  - 🔤 **Phiên âm (Pinyin)**: Màu hổ phách nổi bật, chuẩn thanh điệu.
+  - 🇻🇳 **Dịch nghĩa tiếng Việt**: Dễ hiểu, gần gũi.
+  - 💡 **Mẹo ngữ pháp & gợi ý phản xạ**: Chỉ ra cấu trúc hay và hướng dẫn cách người học đối đáp tiếp theo.
+- 🔊 **Phát âm chuẩn Bắc Kinh (TTS)**: Chạm vào biểu tượng loa để nghe AI phát âm mẫu từng câu.
+- 🎯 **Gợi ý tình huống giao tiếp mẫu**:
+  - `☕ Gọi trà sữa (点奶茶)`: Đặt đồ uống, chỉnh lượng đường, lượng đá.
+  - `✈️ Hỏi đường đi (问路)`: Hỏi đường đến sân bay, bến xe, rẽ trái, rẽ phải.
+  - `🛍️ Mặc cả giá (买东西)`: Mặc cả khi đi mua sắm quần áo, quà lưu niệm.
+  - `🗣️ Giới thiệu bản thân (自我介绍)`: Luyện tập giới thiệu tên, tuổi, nghề nghiệp.
+  - `📖 Tra cứu từ vựng & ngữ pháp`: Giải thích cấu trúc câu HSK trực quan.
+- ⚡ **Chế độ kép linh hoạt**:
+  - **Mặc định (Built-in AI)**: Chạy 100% tức thì không cần mạng, không cần tạo tài khoản hay API Key.
+  - **Mở rộng (Custom Key)**: Hỗ trợ gắn Gemini API Key miễn phí nếu muốn trò chuyện chuyên sâu không giới hạn.
+
+---
+
+### ✨ 2. Giao diện & Hiệu ứng được nâng cấp nổi bật
+- 🌌 **Ánh sáng huyền ảo (Ambient Glow)**: Hiệu ứng ánh sáng nền neon đỏ, hổ phách và hồng tạo chiều sâu sống động.
+- 📊 **Thanh tiến độ theo cấp độ (Level Progress Bar)**: Hiển thị trực quan tỷ lệ % số từ vựng bạn đã làm chủ cho từng cấp HSK 1, 2, 3, 4.
+- 🏷️ **Thẻ Chế độ chơi đa dạng**: Bổ sung chế độ *AI Đối Thoại (Chat Tutor)* bên cạnh Flashcard 3D, Quiz Quest, Ghép từ và Speed Run 30s.
 
 ---
 
@@ -15,26 +44,6 @@ Trò chơi học và luyện thi tiếng Trung tương tác phong cách RPG, tí
 
 ---
 
-## ✨ Tính năng nổi bật
-
-- 🛡️ **Hệ thống RPG & Hồ sơ Hiệp sĩ**:
-  - Tích lũy kinh nghiệm (XP) sau mỗi câu trả lời đúng, tự động thăng cấp (`Level Player`).
-  - Danh hiệu thay đổi theo cấp độ: *Tân Thủ HSK 1*, *Học Giả HSK 2*, *Cao Thủ HSK 3*, *Đại Sư HSK 4*.
-  - Theo dõi chuỗi ngày học (`Streak`), số từ đã làm chủ (`Mastered Words`) và bảng kỷ lục cá nhân.
-- 🎯 **4 Chế độ chơi đa dạng**:
-  1. 🎴 **Flashcard Master (Thẻ 3D)**: Lật thẻ tương tác 3 chiều, nghe phát âm bản xứ, xem câu ví dụ và đánh dấu từ đã thuộc (+10 XP).
-  2. ❓ **Quiz Quest**: Thử thách sinh tồn với 3 Trái Tim (`❤️`), mỗi lượt là một phiên thử thách 15 câu hỏi chọn lọc từ kho từ vựng.
-  3. ✨ **Ghép Từ (Word Match)**: Thử thách phản xạ nối chữ Hán với nghĩa tiếng Việt trên lưới ô vuông (+120 XP thưởng khi hoàn thành).
-  4. ⏱️ **Speed Run 30s**: Chế độ dồn dập 30 giây — trả lời đúng càng nhiều từ vựng càng tốt để xác lập kỷ lục điểm số!
-- 🔊 **Âm thanh tổng hợp & Phát âm giọng chuẩn**:
-  - Web Audio API Sound Synthesizer mô phỏng hiệu ứng âm thanh game 8-bit sống động (`correct`, `wrong`, `levelUp`, `click`).
-  - Tích hợp giọng đọc tiếng Trung chuẩn bản xứ (Web Speech API TTS) mượt mà.
-- 🌓 **Giao diện Dark Mode / Light Mode**:
-  - Chuyển đổi linh hoạt giữa giao diện tối huyền bí và giao diện sáng thanh lịch chỉ với 1 cú click.
-  - Tương thích 100% trên cả điện thoại di động và máy tính.
-
----
-
 ## 🚀 Trải nghiệm trực tuyến (GitHub Pages)
 
 Trò chơi đã được xuất bản và chạy trực tiếp tại:
@@ -44,7 +53,6 @@ Trò chơi đã được xuất bản và chạy trực tiếp tại:
 
 ## 💻 Chạy thử trên máy tính (Local)
 
-Bạn có thể chạy thử trực tiếp trên máy bằng lệnh:
 ```bash
 python -m http.server 8000
 ```

@@ -3,7 +3,8 @@ import {
   Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Play, 
   RotateCcw, Check, X, Shield, Star, Zap, Award, BookOpen, Layers, 
   HelpCircle, Timer, ArrowRight, RefreshCw, BarChart2, CheckCircle2, AlertCircle,
-  CheckCircle, Bookmark, Share2, Info
+  CheckCircle, Bookmark, Share2, Info, MessageSquare, Send, Bot, Settings,
+  Minimize2, Lightbulb, User
 } from 'lucide-react';
 
 // ==========================================
@@ -1280,6 +1281,11 @@ class SoundFxManager {
   click() {
     this.playBeep(800, 'sine', 0.04, 0.05);
   }
+
+  chat() {
+    this.playBeep(600, 'sine', 0.06, 0.08);
+    setTimeout(() => this.playBeep(900, 'sine', 0.08, 0.08), 50);
+  }
 }
 
 const sfx = new SoundFxManager();
@@ -1294,6 +1300,478 @@ const speakText = (text, isMuted = false) => {
   window.speechSynthesis.speak(utterance);
 };
 
+// ==========================================
+// AI CHINESE TUTOR - INTELLIGENT ENGINE
+// ==========================================
+function getBuiltInAIResponse(userText, hskLevel) {
+  const q = userText.trim().toLowerCase();
+
+  // 1. Chào hỏi / Greetings
+  if (['chào', 'hello', 'hi', '你好', 'xin chào', 'hế lô', 'alo'].some(k => q.includes(k))) {
+    return {
+      text: '你好呀！我是小华老师。很高兴和你一起练习中文！你今天想聊些什么呢？',
+      pinyin: 'Nǐ hǎo ya! Wǒ shì Xiǎohuá lǎoshī. Hěn gāoxìng hé nǐ yìqǐ liànxí zhōngwén! Nǐ jīntiān xiǎng liáo xiē shénme ne?',
+      translation: 'Chào em nhé! Cô là cô giáo Tiểu Hoa. Rất vui được cùng em luyện tiếng Trung! Hôm nay em muốn trò chuyện về chủ đề gì nào?',
+      notes: '💡 Gợi ý câu trả lời: 我今天想练习口语 (Hôm nay em muốn luyện khẩu ngữ).'
+    };
+  }
+
+  // 2. Hỏi thăm sức khỏe / How are you
+  if (['khỏe không', 'thế nào', '你好吗', '怎么样', 'dạo này'].some(k => q.includes(k))) {
+    return {
+      text: '我很好，谢谢你的关心！你呢？今天心情怎么样？学中文累不累？',
+      pinyin: 'Wǒ hěn hǎo, xièxie nǐ de guānxīn! Nǐ ne? Jīntiān xīnlíng zěnmeyàng? Xué zhōngwén lèi bu lèi?',
+      translation: 'Cô rất khỏe, cảm ơn em đã quan tâm nhé! Còn em thì sao? Tâm trạng hôm nay thế nào? Học tiếng Trung có mệt không?',
+      notes: '💡 Em có thể đáp lại: 我不累，我很喜欢学习中文 (Em không mệt, em rất thích học tiếng Trung).'
+    };
+  }
+
+  // 3. Tên tuổi / Giới thiệu
+  if (['tên là gì', 'giới thiệu', '你叫什么', '名字', '我是', 'tôi tên là', 'mình là', 'em là'].some(k => q.includes(k))) {
+    return {
+      text: '认识你很高兴！我是你的专属中文AI导师小华。无论你想练习HSK词汇、语法还是日常对话，我都会全力帮助你！',
+      pinyin: 'Rènshi nǐ hěn gāoxìng! Wǒ shì nǐ de zhuānshǔ zhōngwén AI dǎoshī Xiǎohuá. Wúlùn nǐ xiǎng liànxí HSK cíhuì, yǔfǎ háishì rìcháng duìhuà, wǒ dōu huì quánlì bāngzhù nǐ!',
+      translation: 'Rất vui được làm quen với em! Cô là Tiểu Hoa, gia sư AI tiếng Trung riêng của em. Dù em muốn luyện từ vựng HSK, ngữ pháp hay đối thoại thường ngày, cô đều sẽ dốc lòng giúp em!',
+      notes: '💡 Cấu trúc tự giới thiệu: 我叫...，今年...岁，我是学中文的学生。'
+    };
+  }
+
+  // 4. Gọi đồ uống / Trà sữa / Cà phê
+  if (['trà sữa', 'gọi đồ', 'uống', '奶茶', '咖啡', 'cà phê', '喝', 'quán'].some(k => q.includes(k))) {
+    return {
+      text: '欢迎光临！请问你想喝点什么？我们有招牌珍珠奶茶和冰美式咖啡。你想喝热的还是冰的？甜度要怎么选？',
+      pinyin: 'Huānyíng guānglín! Qǐngwèn nǐ xiǎng hē diǎn shénme? Wǒmen yǒu zhāopái zhēnzhū nǎichá hé bīng měishì kāfēi. Nǐ xiǎng hē rè de háishì bīng de? Tiándù yào zěnme xuǎn?',
+      translation: 'Hoan nghênh quý khách! Xin hỏi bạn muốn uống gì ạ? Quán chúng tôi có trà sữa trân châu đặc biệt và cà phê Americano đá. Bạn muốn uống nóng hay đá? Độ ngọt chọn thế nào?',
+      notes: '💡 Mẹo gọi chuẩn vị: “我要一杯珍珠奶茶，半糖少冰 (Cho tôi 1 cốc trà sữa trân châu, nửa đường ít đá)”.'
+    };
+  }
+
+  // 5. Ăn uống / Nhà hàng / Món ăn
+  if (['ăn', 'cơm', 'đói', 'món', '吃饭', '饿', '菜单', 'nhà hàng', 'menu'].some(k => q.includes(k))) {
+    return {
+      text: '服务员，请给我们看一下菜单！中国有很多特色美食，比如北京烤鸭、宫保鸡丁和火锅。你平时最喜欢吃哪道菜？',
+      pinyin: 'Fúwùyuán, qǐng gěi wǒmen kàn yíxià càidān! Zhōngguó yǒu hěn duō tèsè měishí, bǐrú Běijīng kǎoyā, gōngbǎo jīdīng hé huǒguō. Nǐ píngshí zuì xǐhuan chī nǎ dào cài?',
+      translation: 'Phục vụ ơi, xin cho chúng tôi xem thực đơn một chút! Trung Quốc có rất nhiều món ngon đặc sắc, ví dụ như vịt quay Bắc Kinh, gà xào Cung Bảo và lẩu. Bình thường em thích ăn món nào nhất?',
+      notes: '💡 Khi thanh toán, hãy nói: 服务员，买单！(Fúwùyuán, mǎidān! - Phục vụ ơi, tính tiền!)'
+    };
+  }
+
+  // 6. Hỏi đường / Giao thông / Sân bay
+  if (['đường', 'hỏi đường', 'sân bay', 'ở đâu', 'chỗ nào', '去', '怎么走', '机场', '车站'].some(k => q.includes(k))) {
+    return {
+      text: '去机场的话，往前一直走，在第一个红绿灯往右拐，然后坐地铁三号线就能直达，非常方便！',
+      pinyin: 'Qù jīchǎng de huà, wǎng qián yìzhí zǒu, zài dì yī gè hónglǜdēng wǎng yòu guǎi, ránhòu zuò dìtiě sān hào xiàn jiù néng zhídá, fēicháng fāngbiàn!',
+      translation: 'Nếu muốn đi sân bay, hãy đi thẳng về phía trước, ở cột đèn giao thông đầu tiên thì rẽ phải, sau đó đi tàu điện ngầm tuyến số 3 là tới thẳng, rất thuận tiện!',
+      notes: '💡 Từ vựng định hướng: 一直走 (đi thẳng), 往右拐 (rẽ phải), 往左拐 (rẽ trái).'
+    };
+  }
+
+  // 7. Mua sắm / Mặc cả giá
+  if (['tiền', 'bao nhiêu', 'đắt', 'rẻ', 'mặc cả', '多少钱', '贵', '便宜', '买', 'mua'].some(k => q.includes(k))) {
+    return {
+      text: '老板说这件大衣要三百块钱。你可以这样砍价：“太贵了，能不能便宜一点？二百块卖不卖？”',
+      pinyin: 'Lǎobǎn shuō zhè jiàn dàyī yào sān bǎi kuài qián. Nǐ kěyǐ zhèyàng kǎnjià: “Tài guì le, néng bu néng piányi yìdiǎn? Èr bǎi kuài mài bu mài?”',
+      translation: 'Chủ quán bảo chiếc áo khoác này giá 300 tệ. Em có thể mặc cả như thế này: “Đắt quá rồi, có thể rẻ hơn chút không? 200 tệ bác có bán không?”',
+      notes: '💡 Câu cửa miệng khi mua hàng: 太贵了，便宜点吧！(Đắt quá, bớt chút đi mà!)'
+    };
+  }
+
+  // 8. Khen ngợi & Cảm ơn
+  if (['cảm ơn', 'thank', '谢谢', 'giỏi', 'hay', 'tuyệt', 'thích'].some(k => q.includes(k))) {
+    return {
+      text: '不客气！能帮到你我也感到非常开心。你的中文悟性很高，坚持每天练习，一定会取得巨大的进步！',
+      pinyin: 'Bú kèqi! Néng bāng dào nǐ wǒ yě gǎndào fēicháng kāixīn. Nǐ de zhōngwén wùxìng hěn gāo, jiānchí měitiān liànxí, yídìng huì qǔdé jùdà de jìnbù!',
+      translation: 'Không có chi em nhé! Giúp được em cô cũng thấy rất vui. Khả năng cảm thụ tiếng Trung của em rất tốt, kiên trì luyện tập mỗi ngày nhất định sẽ tiến bộ vượt bậc!',
+      notes: '💡 Đáp lại lời cảm ơn: 不客气 (Bú kèqi) hoặc 不用谢 (Bú yòng xiè).'
+    };
+  }
+
+  // 9. Ngữ pháp / Phương pháp học tiếng Trung
+  if (['ngữ pháp', 'học', 'bí quyết', 'làm sao', 'hsk', 'kinh nghiệm', 'phương pháp'].some(k => q.includes(k))) {
+    return {
+      text: '学好中文的秘密只有八个字：“多听、多读、敢说、不怕错”。每天背15个生词，多和我聊天，不知不觉就能考过HSK了！',
+      pinyin: 'Xué hǎo zhōngwén de mìmì zhǐ yǒu bā gè zì: “duō tīng, duō dú, gǎn shuō, bú pà cuò”. Měitiān bèi shíwǔ gè shēngcí, duō hé wǒ liáotiān, bùzhī bùjué jiù néng kǎo guò HSK le!',
+      translation: 'Bí quyết học giỏi tiếng Trung chỉ gói gọn trong 8 chữ: “Nghe nhiều, đọc nhiều, dám nói, không sợ sai”. Mỗi ngày thuộc 15 từ mới, thường xuyên chat với cô, chẳng mấy chốc sẽ thi đỗ HSK thôi!',
+      notes: '💡 Ngữ pháp HSK 3 trọng điểm: 一...就... (vừa... thì...), 动词 + 来/去 (bổ ngữ xu hướng).'
+    };
+  }
+
+  // 10. Tra cứu từ vựng / Giải nghĩa
+  if (['nghĩa là gì', 'là gì', 'nghĩa của', 'tiếng trung là gì'].some(k => q.includes(k))) {
+    return {
+      text: '学习新生词时，记得结合语境造句哦！比如“努力 (nǔlì)”是努力/cố gắng，造句：“只要努力，就一定能学好中文！”',
+      pinyin: 'Xuéxí xīn shēngcí shí, jìde jiéhé yǔjìng zàojù o! Bǐrú “nǔlì” shì nỗ lực/cố gắng, zàojù: “Zhǐyào nǔlì, jiù yídìng néng xué hǎo zhōngwén!”',
+      translation: 'Khi học từ vựng mới, nhớ kết hợp đặt câu theo ngữ cảnh nhé! Ví dụ từ “努力 (nǔlì)” nghĩa là nỗ lực/cố gắng, đặt câu: “Chỉ cần nỗ lực, nhất định sẽ học giỏi tiếng Trung!”',
+      notes: '💡 Trong game có tới 1.201 từ vựng HSK 1-4, em có thể qua mục Flashcard để tra cứu và luyện tập thêm nhé!'
+    };
+  }
+
+  // Fallback tổng quát tự nhiên
+  return {
+    text: `这句话说得很棒！“${userText}”。中文是一门很有魅力的语言，继续和我多聊几句吧，你想再探讨什么话题呢？`,
+    pinyin: `Zhè jù huà shuō de hěn bàng! “${userText}”. Zhōngwén shì yì mén hěn yǒu mèilì de yǔyán, jìxù hé wǒ duō liáo jǐ jù ba, nǐ xiǎng zài tàntǎo shénme huàtí ne?`,
+    translation: `Câu này em nói hay lắm! “${userText}”. Tiếng Trung là một ngôn ngữ vô cùng cuốn hút, hãy tiếp tục trò chuyện với cô thêm vài câu nhé, em muốn thảo luận về chủ đề gì tiếp theo?`,
+    notes: '💡 Hãy thử bấm vào các gợi ý tình huống ở trên như “Gọi trà sữa”, “Hỏi đường” hoặc “Mặc cả” để luyện tập phản xạ nhé!'
+  };
+}
+
+// Gọi API Gemini hoặc OpenAI nếu có Custom Key
+async function callExternalAI(userText, apiKey, modelType, hskLevel) {
+  if (modelType === 'gemini') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const systemPrompt = `Bạn là cô giáo Tiểu Hoa (小华老师) - một gia sư dạy tiếng Trung cực kỳ nhiệt tình, dịu dàng và thân thiện cho học viên người Việt Nam đang ôn thi HSK ${hskLevel}.
+Quy tắc trả lời:
+BẮT BUỘC trả về định dạng JSON hợp lệ duy nhất có cấu trúc:
+{
+  "text": "Câu trả lời bằng chữ Hán giản thể tự nhiên, phù hợp HSK ${hskLevel}",
+  "pinyin": "Phiên âm pinyin chuẩn có thanh điệu",
+  "translation": "Bản dịch nghĩa tiếng Việt tự nhiên, thân thiện",
+  "notes": "Lời khuyên ngữ pháp hoặc mẹo giao tiếp bổ ích (ngắn gọn 1-2 câu)"
+}
+Người học nói: "${userText}". Hãy trả lời ngay.`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: systemPrompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+    const data = await res.json();
+    const candidate = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (candidate) {
+      return JSON.parse(candidate);
+    }
+  }
+  throw new Error('API request failed');
+}
+
+// ==========================================
+// AI CHATBOT MODAL COMPONENT (TIỂU HOA 👩‍🏫)
+// ==========================================
+function AIChatModal({ darkMode, onClose, muted, hskLevel, onGainXp }) {
+  const [messages, setMessages] = useState([
+    {
+      id: 'welcome',
+      sender: 'ai',
+      text: '你好！我是小华老师。今天你想用中文聊些什么呢？',
+      pinyin: 'Nǐ hǎo! Wǒ shì Xiǎohuá lǎoshī. Jīntiān nǐ xiǎng yòng zhōngwén liáo xiē shénme ne?',
+      translation: 'Xin chào! Cô là cô giáo Tiểu Hoa. Hôm nay em muốn trò chuyện về chủ đề gì bằng tiếng Trung nào?',
+      notes: '💡 Em có thể gõ chữ Hán, Pinyin hoặc tiếng Việt, cô đều hiểu nhé! Bấm vào nút loa 🔊 để nghe phát âm.',
+      timestamp: Date.now()
+    }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('hsk_ai_api_key') || '');
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('hsk_ai_provider') || 'builtin');
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const quickTopics = [
+    { label: '☕ Gọi trà sữa', prompt: '老板，我想点一杯珍珠奶茶，半糖少冰。' },
+    { label: '✈️ Hỏi đường', prompt: '请问去机场怎么走？' },
+    { label: '🛍️ Mặc cả giá', prompt: '这件衣服多少钱？太贵了，能不能便宜一点？' },
+    { label: '🗣️ Tự giới thiệu', prompt: '你好！我叫阿明，今年二十岁，很高兴认识你！' },
+    { label: '📖 Bí quyết HSK', prompt: '老师，怎样才能提高汉语听力和口语水平？' }
+  ];
+
+  const handleSendMessage = async (textToSend) => {
+    const text = (textToSend || inputText).trim();
+    if (!text || isTyping) return;
+
+    if (!muted) sfx.click();
+    setInputText('');
+
+    const userMsg = {
+      id: 'usr_' + Date.now(),
+      sender: 'user',
+      text: text,
+      timestamp: Date.now()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setIsTyping(true);
+
+    try {
+      let replyData = null;
+      if (apiKey.trim() && aiProvider === 'gemini') {
+        try {
+          replyData = await callExternalAI(text, apiKey.trim(), 'gemini', hskLevel);
+        } catch (e) {
+          console.warn('Fallback to built-in AI:', e);
+          replyData = getBuiltInAIResponse(text, hskLevel);
+        }
+      } else {
+        // Built-in intelligent response engine
+        await new Promise(r => setTimeout(r, 600)); // Natural typing delay
+        replyData = getBuiltInAIResponse(text, hskLevel);
+      }
+
+      const aiMsg = {
+        id: 'ai_' + Date.now(),
+        sender: 'ai',
+        text: replyData.text,
+        pinyin: replyData.pinyin,
+        translation: replyData.translation,
+        notes: replyData.notes,
+        timestamp: Date.now()
+      };
+
+      setMessages(prev => [...prev, aiMsg]);
+      if (!muted) sfx.chat();
+      onGainXp(10); // Reward for practicing!
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: 'err_' + Date.now(),
+          sender: 'ai',
+          text: '好的，我已经收到你的消息了！继续加油哦！',
+          pinyin: 'Hǎo de, wǒ yǐjīng shōudào nǐ de xiāoxi le! Jìxù jiāyóu o!',
+          translation: 'Được rồi, cô đã nhận được tin nhắn của em rồi! Tiếp tục cố gắng nhé!',
+          timestamp: Date.now()
+        }
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const saveSettings = (newKey, newProvider) => {
+    setApiKey(newKey);
+    setAiProvider(newProvider);
+    localStorage.setItem('hsk_ai_api_key', newKey);
+    localStorage.setItem('hsk_ai_provider', newProvider);
+    setShowSettings(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+      <div className={`w-full max-w-2xl h-[92vh] sm:h-[85vh] rounded-3xl border flex flex-col shadow-2xl overflow-hidden transition-all ${darkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'}`}>
+        
+        {/* CHAT HEADER */}
+        <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md ${darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 via-red-500 to-amber-500 flex items-center justify-center text-white text-xl shadow-lg shadow-red-500/20 font-bold">
+                华
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-slate-900"></span>
+              </span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-base sm:text-lg flex items-center gap-1.5">
+                  Cô giáo Tiểu Hoa (小华老师)
+                </h3>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-400 border border-red-500/30">
+                  HSK {hskLevel} Tutor
+                </span>
+              </div>
+              <p className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                ● Trực tuyến · Sẵn sàng luyện khẩu ngữ
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={`p-2 rounded-xl transition ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+              title="Cài đặt AI Key"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-xl transition ${darkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+              title="Đóng chatbox"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* SETTINGS DRAWER (OPTIONAL API KEY) */}
+        {showSettings && (
+          <div className={`p-4 border-b space-y-3 animate-fadeIn text-xs ${darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+            <div className="flex justify-between items-center font-bold">
+              <span>⚙️ Cài đặt Trí Tuệ Nhân Tạo (Tùy chọn)</span>
+              <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:underline">Đóng</button>
+            </div>
+            <p className="text-slate-400 leading-relaxed">
+              Mặc định ứng dụng dùng **AI Offline tích hợp sẵn** không cần key. Nếu muốn AI thông minh siêu cấp, bạn có thể nhập Gemini API Key miễn phí dưới đây:
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                placeholder="Dán Gemini API Key (tùy chọn)..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className={`flex-1 px-3 py-2 rounded-xl border text-xs outline-none ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-300'}`}
+              />
+              <button
+                onClick={() => saveSettings(apiKey, apiKey ? 'gemini' : 'builtin')}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold"
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* QUICK TOPIC PROMPTS */}
+        <div className={`px-4 py-2.5 border-b flex items-center gap-2 overflow-x-auto no-scrollbar ${darkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+          <span className="text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1">
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Gợi ý:
+          </span>
+          {quickTopics.map((topic, i) => (
+            <button
+              key={i}
+              onClick={() => handleSendMessage(topic.prompt)}
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition hover:scale-105 active:scale-95 ${
+                darkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-600 text-slate-300' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+              }`}
+            >
+              {topic.label}
+            </button>
+          ))}
+        </div>
+
+        {/* CHAT MESSAGES CONTAINER */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((msg) => {
+            const isAI = msg.sender === 'ai';
+            return (
+              <div key={msg.id} className={`flex items-start gap-2.5 ${isAI ? 'justify-start' : 'justify-end'}`}>
+                {isAI && (
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md">
+                    华
+                  </div>
+                )}
+
+                <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 space-y-2 shadow-sm ${
+                  isAI 
+                    ? darkMode ? 'bg-slate-800/90 border border-slate-700 text-slate-100' : 'bg-slate-100 border border-slate-200 text-slate-800'
+                    : 'bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-br-none shadow-md shadow-red-500/10'
+                }`}>
+                  {isAI ? (
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500 tracking-wide">
+                          {msg.text}
+                        </div>
+                        <button
+                          onClick={() => speakText(msg.text, muted)}
+                          className="p-1.5 rounded-full hover:bg-red-500/10 text-slate-400 hover:text-red-500 transition shrink-0"
+                          title="Nghe phát âm chuẩn"
+                        >
+                          <Volume2 className="w-5 h-5 text-red-500" />
+                        </button>
+                      </div>
+
+                      {msg.pinyin && (
+                        <div className="text-xs sm:text-sm font-semibold text-amber-400 tracking-wide">
+                          [{msg.pinyin}]
+                        </div>
+                      )}
+
+                      {msg.translation && (
+                        <div className={`text-xs sm:text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                          🇻🇳 {msg.translation}
+                        </div>
+                      )}
+
+                      {msg.notes && (
+                        <div className={`mt-2 p-2.5 rounded-xl border text-xs leading-relaxed ${darkMode ? 'bg-slate-900/80 border-slate-700/60 text-slate-300' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+                          {msg.notes}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm sm:text-base font-medium">
+                      {msg.text}
+                    </div>
+                  )}
+                </div>
+
+                {!isAI && (
+                  <div className="w-8 h-8 rounded-xl bg-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    <User className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* TYPING INDICATOR */}
+          {isTyping && (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold">
+                华
+              </div>
+              <div className={`p-3 rounded-2xl flex items-center gap-1.5 ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-bounce"></span>
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce [animation-delay:0.2s]"></span>
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-bounce [animation-delay:0.4s]"></span>
+                <span className="ml-1 text-xs font-medium">Cô giáo Tiểu Hoa đang soạn phản hồi...</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* INPUT BAR */}
+        <div className={`p-3 sm:p-4 border-t ${darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex items-center gap-2"
+          >
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Nhập chữ Hán, Pinyin hoặc tiếng Việt..."
+              className={`flex-1 px-4 py-3 rounded-2xl border text-sm sm:text-base outline-none transition focus:ring-2 focus:ring-red-500/50 ${
+                darkMode ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder-slate-500' : 'bg-slate-100 border-slate-200 text-slate-800 placeholder-slate-400'
+              }`}
+            />
+            <button
+              type="submit"
+              disabled={!inputText.trim() || isTyping}
+              className="p-3 sm:px-5 sm:py-3 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 hover:opacity-90 active:scale-95 disabled:opacity-40 text-white font-bold transition shadow-lg shadow-red-500/20 flex items-center gap-1.5"
+            >
+              <Send className="w-5 h-5" />
+              <span className="hidden sm:inline text-sm">Gửi</span>
+            </button>
+          </form>
+          <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-400">
+            <span>✨ Luyện khẩu ngữ nhận ngay +10 XP</span>
+            <span>Gõ Enter để gửi tin nhắn</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 // Main React App Component
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -1306,6 +1784,7 @@ export default function App() {
   const [masteredWords, setMasteredWords] = useState(new Set(['h1_1', 'h1_2']));
   const [highScores, setHighScores] = useState({ speedrun: 120, quiz: 80, match: 60 });
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showAIChatModal, setShowAIChatModal] = useState(false);
 
   // Navigation / Mode Select
   const [mode, setMode] = useState('hub');
@@ -1346,19 +1825,29 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`min-h-screen transition-colors duration-300 font-sans relative overflow-x-hidden ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       
+      {/* AMBIENT GLOW EFFECTS */}
+      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-64 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute bottom-10 left-10 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+
       {/* HEADER / NAVIGATION BAR */}
-      <header className={`sticky top-0 z-50 backdrop-blur-md border-b ${darkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b ${darkMode ? 'bg-slate-900/80 border-slate-800 shadow-lg shadow-black/20' : 'bg-white/80 border-slate-200 shadow-sm'}`}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setMode('hub')}>
-            <div className="bg-gradient-to-tr from-red-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-red-500/20 text-white font-bold text-xl flex items-center justify-center">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setMode('hub')}>
+            <div className="bg-gradient-to-tr from-red-600 via-rose-500 to-amber-500 p-2.5 rounded-2xl shadow-lg shadow-red-500/25 text-white font-bold text-xl flex items-center justify-center group-hover:scale-105 transition-transform">
               漢
             </div>
             <div>
-              <h1 className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-red-500 via-amber-500 to-orange-500 bg-clip-text text-transparent">
-                HSK Quest Master
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-red-500 via-amber-500 to-orange-500 bg-clip-text text-transparent">
+                  HSK Quest Master
+                </h1>
+                <span className="hidden sm:inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+                  RPG Edition
+                </span>
+              </div>
               <p className="text-xs text-slate-400 font-medium">{title}</p>
             </div>
           </div>
@@ -1386,12 +1875,21 @@ export default function App() {
               <span>{xp} XP</span>
             </div>
 
+            {/* AI CHAT SHORTCUT IN HEADER */}
+            <button
+              onClick={() => { if (!muted) sfx.click(); setShowAIChatModal(true); }}
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition hover:scale-105 active:scale-95 bg-gradient-to-r from-red-500/20 via-rose-500/20 to-amber-500/20 border-red-500/30 text-rose-400 hover:text-rose-300"
+            >
+              <Bot className="w-4 h-4 text-rose-500" />
+              <span>Chat AI Tiểu Hoa</span>
+            </button>
+
             {/* CONTROLS */}
             <div className="flex items-center border-l border-slate-700/50 pl-2 gap-1">
               <button 
                 onClick={() => setShowStatsModal(true)} 
                 className={`p-2 rounded-lg transition ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
-                title="Thống kê"
+                title="Hồ sơ & Thống kê"
               >
                 <BarChart2 className="w-5 h-5 text-indigo-400" />
               </button>
@@ -1405,6 +1903,7 @@ export default function App() {
               <button 
                 onClick={() => setDarkMode(!darkMode)} 
                 className={`p-2 rounded-lg transition ${darkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+                title={darkMode ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
               >
                 {darkMode ? <Sun className="w-5 h-5 text-amber-300" /> : <Moon className="w-5 h-5 text-indigo-600" />}
               </button>
@@ -1419,10 +1918,18 @@ export default function App() {
           <HubView 
             hskLevel={hskLevel} 
             setHskLevel={setHskLevel} 
-            setMode={(m) => { if (!muted) sfx.click(); setMode(m); }}
+            setMode={(m) => {
+              if (!muted) sfx.click();
+              if (m === 'ai-chat') {
+                setShowAIChatModal(true);
+              } else {
+                setMode(m);
+              }
+            }}
             darkMode={darkMode}
             highScores={highScores}
             masteredWords={masteredWords}
+            onOpenAIChat={() => setShowAIChatModal(true)}
           />
         )}
 
@@ -1473,6 +1980,24 @@ export default function App() {
         )}
       </main>
 
+      {/* FLOATING AI CHAT LAUNCHER WIDGET */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 group">
+        <button
+          onClick={() => { if (!muted) sfx.click(); setShowAIChatModal(true); }}
+          className="relative p-3.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white shadow-xl shadow-red-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 border-2 border-white/20"
+          title="Trò chuyện với Cô giáo AI Tiểu Hoa"
+        >
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <Bot className="w-6 h-6 animate-bounce" />
+          <span className="hidden sm:inline font-bold text-sm tracking-wide">
+            Chat AI Tiểu Hoa 👩‍🏫
+          </span>
+        </button>
+      </div>
+
       {/* STATS & PROGRESS MODAL */}
       {showStatsModal && (
         <StatsModal 
@@ -1486,6 +2011,17 @@ export default function App() {
           title={title}
         />
       )}
+
+      {/* AI CHATBOT MODAL */}
+      {showAIChatModal && (
+        <AIChatModal
+          darkMode={darkMode}
+          onClose={() => setShowAIChatModal(false)}
+          muted={muted}
+          hskLevel={hskLevel}
+          onGainXp={gainXp}
+        />
+      )}
     </div>
   );
 }
@@ -1493,7 +2029,7 @@ export default function App() {
 // ==========================================
 // 1. HUB / HOME VIEW (LEVEL SELECT + MODES)
 // ==========================================
-function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, masteredWords }) {
+function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, masteredWords, onOpenAIChat }) {
   const modes = [
     {
       id: 'flashcards',
@@ -1526,47 +2062,90 @@ function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, mastere
       icon: Timer,
       color: 'from-purple-600 to-pink-600',
       badge: 'Tốc Độ'
+    },
+    {
+      id: 'ai-chat',
+      title: 'AI Đối Thoại (Chat Tutor)',
+      desc: 'Luyện khẩu ngữ 1-1 cùng cô giáo ảo Tiểu Hoa, sửa lỗi ngữ pháp & phát âm.',
+      icon: Bot,
+      color: 'from-rose-500 to-pink-600',
+      badge: 'Gia Sư AI'
     }
   ];
 
-  const currentLevelWords = HSK_DATA[hskLevel];
+  const currentLevelWords = HSK_DATA[hskLevel] || [];
   const masteredInCurrentLevel = currentLevelWords.filter(w => masteredWords.has(w.id)).length;
+  const percentMastered = currentLevelWords.length > 0 ? Math.round((masteredInCurrentLevel / currentLevelWords.length) * 100) : 0;
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* BANNER */}
-      <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border ${darkMode ? 'bg-gradient-to-r from-slate-900 via-slate-800 to-red-950/40 border-slate-800' : 'bg-gradient-to-r from-red-500/10 via-amber-500/10 to-orange-500/10 border-red-100'}`}>
-        <div className="relative z-10 max-w-xl">
-          <span className="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-full bg-red-500/20 text-red-500 inline-block mb-3">
-            Học Tiếng Trung Gamified
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
-            Chinh Phục HSK {hskLevel} Dễ Dàng!
+      {/* BANNER WITH GLOWING ACCENTS */}
+      <div className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xl transition-all ${darkMode ? 'bg-gradient-to-r from-slate-900 via-slate-800 to-red-950/40 border-slate-800' : 'bg-gradient-to-r from-red-500/10 via-amber-500/10 to-orange-500/10 border-red-100'}`}>
+        <div className="relative z-10 max-w-xl space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-full bg-red-500/20 text-red-500 inline-flex items-center gap-1 border border-red-500/30">
+              <Sparkles className="w-3.5 h-3.5" /> Học Tiếng Trung Gamified
+            </span>
+            <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              ✨ 1.201 Từ vựng HSK 1-4
+            </span>
+            <button
+              onClick={onOpenAIChat}
+              className="px-3 py-1 text-xs font-bold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:scale-105 transition flex items-center gap-1"
+            >
+              <Bot className="w-3.5 h-3.5" /> Chat cùng AI Tiểu Hoa
+            </button>
+          </div>
+
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+            Chinh Phục HSK {hskLevel} Cùng AI!
           </h2>
-          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} text-sm sm:text-base`}>
-            Đã thuộc: <span className="text-emerald-400 font-bold">{masteredInCurrentLevel}/{currentLevelWords.length}</span> từ vựng. Chọn chế độ luyện tập ngay dưới đây!
+          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} text-sm sm:text-base leading-relaxed`}>
+            Đã thuộc: <span className="text-emerald-400 font-bold">{masteredInCurrentLevel}/{currentLevelWords.length}</span> từ vựng ({percentMastered}% hoàn thành). Chọn chế độ luyện tập ngay dưới đây!
           </p>
+
+          {/* PROGRESS BAR */}
+          <div className="w-full max-w-md h-2.5 bg-slate-800/80 rounded-full overflow-hidden border border-slate-700/50">
+            <div 
+              className="h-full bg-gradient-to-r from-red-500 via-amber-500 to-emerald-400 transition-all duration-500" 
+              style={{ width: `${percentMastered}%` }}
+            />
+          </div>
         </div>
+
         <div className="absolute right-4 bottom-2 opacity-10 sm:opacity-20 pointer-events-none select-none text-9xl font-black text-red-500">
           漢
         </div>
       </div>
 
-      {/* HSK LEVEL SELECTOR */}
+      {/* HSK LEVEL SELECTOR WITH LEVEL PROGRESS */}
       <div>
-        <h3 className="text-sm font-bold tracking-wider uppercase text-slate-400 mb-4 flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-red-500" /> Chọn Cấp Độ HSK Target
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-red-500" /> Chọn Cấp Độ HSK Target
+          </h3>
+          <span className="text-xs text-slate-500 font-medium">1.201 từ chuẩn HSK 1-4</span>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((lvl) => {
+          {[
+            { lvl: 1, count: 150, desc: 'Cơ bản' },
+            { lvl: 2, count: 150, desc: 'Giao tiếp' },
+            { lvl: 3, count: 301, desc: 'Trung cấp' },
+            { lvl: 4, count: 600, desc: 'Thành thạo' }
+          ].map(({ lvl, count, desc }) => {
             const isSelected = hskLevel === lvl;
+            const lvlWords = HSK_DATA[lvl] || [];
+            const masteredCount = lvlWords.filter(w => masteredWords.has(w.id)).length;
+            const pct = lvlWords.length > 0 ? Math.round((masteredCount / lvlWords.length) * 100) : 0;
+
             return (
               <button
                 key={lvl}
                 onClick={() => { sfx.click(); setHskLevel(lvl); }}
                 className={`relative p-5 rounded-2xl border transition-all text-left group overflow-hidden ${
                   isSelected 
-                    ? 'border-red-500 shadow-lg shadow-red-500/20 bg-gradient-to-b from-red-500/10 to-transparent' 
+                    ? 'border-red-500 shadow-xl shadow-red-500/20 bg-gradient-to-b from-red-500/10 via-amber-500/5 to-transparent scale-[1.02]' 
                     : darkMode 
                       ? 'bg-slate-900 border-slate-800 hover:border-slate-700' 
                       : 'bg-white border-slate-200 hover:border-slate-300'
@@ -1576,14 +2155,18 @@ function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, mastere
                   <span className={`text-2xl font-black ${isSelected ? 'text-red-500' : darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                     HSK {lvl}
                   </span>
-                  {isSelected && <CheckCircle2 className="w-5 h-5 text-red-500" />}
+                  {isSelected ? (
+                    <CheckCircle2 className="w-5 h-5 text-red-500 animate-pulse" />
+                  ) : (
+                    <span className="text-[10px] font-bold text-slate-500">{pct}%</span>
+                  )}
                 </div>
-                <p className="text-xs text-slate-400">
-                  {lvl === 1 && '150 từ - Cơ bản'}
-                  {lvl === 2 && '150 từ - Giao tiếp'}
-                  {lvl === 3 && '301 từ - Trung cấp'}
-                  {lvl === 4 && '600 từ - Thành thạo'}
+                <p className="text-xs text-slate-400 mb-2 font-medium">
+                  {count} từ - {desc}
                 </p>
+                <div className="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                  <div className="bg-red-500 h-full transition-all duration-300" style={{ width: `${pct}%` }} />
+                </div>
               </button>
             );
           })}
@@ -1593,23 +2176,26 @@ function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, mastere
       {/* GAME MODES SELECTION */}
       <div>
         <h3 className="text-sm font-bold tracking-wider uppercase text-slate-400 mb-4 flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-amber-500" /> Chọn Chế Độ Chơi (HSK {hskLevel})
+          <Trophy className="w-4 h-4 text-amber-500" /> Chọn Chế Độ Luyện Tập (HSK {hskLevel})
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {modes.map((m) => {
             const Icon = m.icon;
+            const isAIChat = m.id === 'ai-chat';
             return (
               <div
                 key={m.id}
                 onClick={() => setMode(m.id)}
                 className={`group relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+                  isAIChat ? 'border-rose-500/50 hover:border-rose-500' : ''
+                } ${
                   darkMode 
                     ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700 hover:shadow-xl hover:shadow-black/40' 
                     : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-200/50'
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div className={`p-3.5 rounded-2xl bg-gradient-to-tr ${m.color} text-white shadow-md group-hover:scale-110 transition-transform`}>
+                  <div className={`p-3.5 rounded-2xl bg-gradient-to-tr ${m.color} text-white shadow-md group-hover:scale-110 transition-transform shrink-0`}>
                     <Icon className="w-7 h-7" />
                   </div>
                   <div className="flex-1">
@@ -1625,7 +2211,7 @@ function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, mastere
                       {m.desc}
                     </p>
                     <div className="flex items-center text-xs font-semibold text-red-500 group-hover:translate-x-1 transition-transform">
-                      Bắt đầu ngay <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      {isAIChat ? 'Trò chuyện ngay' : 'Bắt đầu ngay'} <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </div>
                   </div>
                 </div>
@@ -1645,7 +2231,7 @@ function FlashcardView({ words, onBack, darkMode, muted, onGainXp, masteredWords
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  const currentWord = words[index];
+  const currentWord = words[index] || words[0];
   const isMastered = masteredWords.has(currentWord?.id);
 
   const handleNext = () => {
@@ -1776,14 +2362,14 @@ function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
 
-  const currentWord = sessionWords[currentIndex];
+  const currentWord = sessionWords[currentIndex] || sessionWords[0];
 
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
     const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
     return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words]);
+  }, [currentIndex, words, currentWord]);
 
   const handleSelect = (option) => {
     if (isAnswered) return;
@@ -1876,7 +2462,7 @@ function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
       </div>
 
       <div className={`p-8 rounded-3xl border text-center relative ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Từ vựng #{currentIndex + 1}</span>
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Câu hỏi #{currentIndex + 1} / {sessionWords.length}</span>
         <div className="text-5xl sm:text-6xl font-black text-red-500 my-4 flex items-center justify-center gap-3">
           {currentWord.hanzi}
           <button onClick={() => speakText(currentWord.hanzi, muted)} className="p-2 rounded-full hover:bg-red-500/10 text-slate-400 hover:text-red-500 transition">
@@ -2039,14 +2625,14 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
   const [isActive, setIsActive] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
 
-  const currentWord = words[currentIndex % words.length];
+  const currentWord = words[currentIndex % words.length] || words[0];
 
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
     const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
     return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words]);
+  }, [currentIndex, words, currentWord]);
 
   useEffect(() => {
     let timer = null;

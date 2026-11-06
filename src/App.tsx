@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
-  Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Play, 
+  Shuffle, Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Play, 
   RotateCcw, Check, X, Shield, Star, Zap, Award, BookOpen, Layers, 
   HelpCircle, Timer, ArrowRight, RefreshCw, BarChart2, CheckCircle2, AlertCircle,
   CheckCircle, Bookmark, Share2, Info, MessageSquare, Send, Bot, Settings,
@@ -1222,6 +1222,20 @@ const HSK_DATA = {
   ]
 };
 
+
+// Fisher-Yates (Knuth) True Uniform Random Shuffle Algorithm
+function shuffleArray(array) {
+  if (!array || array.length <= 1) return array ? [...array] : [];
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+}
+
 // RPG Titles based on HSK Level & XP
 const getPlayerTitle = (level, hskLvl) => {
   if (hskLvl === 1) return `Tân Thủ HSK 1 (LV.${level})`;
@@ -2228,23 +2242,38 @@ function HubView({ hskLevel, setHskLevel, setMode, darkMode, highScores, mastere
 // 2. FLASHCARD MASTER MODE (3D FLIP)
 // ==========================================
 function FlashcardView({ words, onBack, darkMode, muted, onGainXp, masteredWords, toggleMastered }) {
+  const [isShuffled, setIsShuffled] = useState(true);
+  const [deckKey, setDeckKey] = useState(0);
+
+  // Deck is randomized by default using Fisher-Yates
+  const deck = useMemo(() => {
+    return isShuffled ? shuffleArray(words) : [...words];
+  }, [words, isShuffled, deckKey]);
+
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  const currentWord = words[index] || words[0];
+  const currentWord = deck[index] || deck[0];
   const isMastered = masteredWords.has(currentWord?.id);
+
+  const handleShuffle = () => {
+    if (!muted) sfx.click();
+    setDeckKey(k => k + 1);
+    setIndex(0);
+    setFlipped(false);
+  };
 
   const handleNext = () => {
     if (!muted) sfx.click();
     setFlipped(false);
-    setIndex((prev) => (prev < words.length - 1 ? prev + 1 : 0));
+    setIndex((prev) => (prev < deck.length - 1 ? prev + 1 : 0));
     onGainXp(5);
   };
 
   const handlePrev = () => {
     if (!muted) sfx.click();
     setFlipped(false);
-    setIndex((prev) => (prev > 0 ? prev - 1 : words.length - 1));
+    setIndex((prev) => (prev > 0 ? prev - 1 : deck.length - 1));
   };
 
   return (
@@ -2256,8 +2285,29 @@ function FlashcardView({ words, onBack, darkMode, muted, onGainXp, masteredWords
         >
           ← Quay lại
         </button>
-        <div className="text-xs font-semibold text-slate-400">
-          Thẻ {index + 1} / {words.length}
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleShuffle}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+              darkMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-400' : 'bg-slate-200 hover:bg-slate-300 text-amber-700'
+            }`}
+            title="Xáo trộn ngẫu nhiên toàn bộ thẻ"
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>Xáo thẻ</span>
+          </button>
+          <button
+            onClick={() => { setIsShuffled(!isShuffled); setIndex(0); setFlipped(false); }}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition ${
+              isShuffled ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-slate-700 text-slate-400'
+            }`}
+          >
+            {isShuffled ? '🎲 Ngẫu nhiên' : '🔤 A-Z'}
+          </button>
+          <div className="text-xs font-semibold text-slate-400 ml-1">
+            {index + 1} / {deck.length}
+          </div>
         </div>
       </div>
 
@@ -2351,9 +2401,12 @@ function FlashcardView({ words, onBack, darkMode, muted, onGainXp, masteredWords
 // 3. QUIZ QUEST MODE
 // ==========================================
 function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighScore }) {
+  const [sessionKey, setSessionKey] = useState(0);
+
+  // Truly random 15 words chosen with Fisher-Yates
   const sessionWords = useMemo(() => {
-    return [...words].sort(() => 0.5 - Math.random()).slice(0, 15);
-  }, [words]);
+    return shuffleArray(words).slice(0, 15);
+  }, [words, sessionKey]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hearts, setHearts] = useState(3);
@@ -2364,12 +2417,13 @@ function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
 
   const currentWord = sessionWords[currentIndex] || sessionWords[0];
 
+  // Truly random 4 options for current question, with answer shuffled uniformly
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
-    const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words, currentWord]);
+    const selectedWrong = shuffleArray(wrong).slice(0, 3);
+    return shuffleArray([...selectedWrong, currentWord]);
+  }, [currentIndex, words, currentWord, sessionKey]);
 
   const handleSelect = (option) => {
     if (isAnswered) return;
@@ -2404,6 +2458,7 @@ function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
   };
 
   const resetGame = () => {
+    setSessionKey(k => k + 1);
     setCurrentIndex(0);
     setHearts(3);
     setScore(0);
@@ -2437,7 +2492,7 @@ function QuizQuestView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
             Quay lại Hub
           </button>
           <button onClick={resetGame} className="flex-1 py-3 rounded-xl font-bold text-sm bg-red-600 hover:bg-red-500 text-white">
-            Thử lại
+            Vòng Mới (Random)
           </button>
         </div>
       </div>
@@ -2518,14 +2573,26 @@ function WordMatchView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
   const [selectedItem, setSelectedItem] = useState(null);
   const [matchedIds, setMatchedIds] = useState([]);
   const [score, setScore] = useState(0);
+  const [roundKey, setRoundKey] = useState(0);
 
   useEffect(() => {
-    const selectedSub = [...words].sort(() => 0.5 - Math.random()).slice(0, 6);
+    // 1. Pick 6 random words with Fisher-Yates
+    const selectedSub = shuffleArray(words).slice(0, 6);
+    
+    // 2. Generate Hanzi and Meaning cards
     const hanziList = selectedSub.map(w => ({ id: w.id, type: 'hanzi', val: w.hanzi, pinyin: w.pinyin }));
     const meaningList = selectedSub.map(w => ({ id: w.id, type: 'meaning', val: w.meaning }));
     
-    setGridItems([...hanziList, ...meaningList].sort(() => 0.5 - Math.random()));
-  }, [words]);
+    // 3. Shuffle all 12 cards thoroughly across grid
+    setGridItems(shuffleArray([...hanziList, ...meaningList]));
+    setSelectedItem(null);
+    setMatchedIds([]);
+  }, [words, roundKey]);
+
+  const restartRound = () => {
+    if (!muted) sfx.click();
+    setRoundKey(k => k + 1);
+  };
 
   const handleCardClick = (item) => {
     if (matchedIds.includes(item.id)) return;
@@ -2563,12 +2630,24 @@ function WordMatchView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
         <button onClick={onBack} className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
           ← Quay lại
         </button>
-        <span className="text-xs font-semibold text-slate-400">Đã ghép: {matchedIds.length} / 6 Cặp</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={restartRound}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+              darkMode ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400' : 'bg-slate-200 hover:bg-slate-300 text-emerald-700'
+            }`}
+            title="Đổi bộ 6 từ mới ngẫu nhiên"
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>Đổi bộ từ mới</span>
+          </button>
+          <span className="text-xs font-semibold text-slate-400">Đã ghép: {matchedIds.length} / 6 Cặp</span>
+        </div>
       </div>
 
       <div className="text-center">
         <h3 className="text-xl font-bold">Ghép Chữ Hán & Tiếng Việt</h3>
-        <p className="text-xs text-slate-400 mt-1">Nối đúng các ô tương ứng.</p>
+        <p className="text-xs text-slate-400 mt-1">Vị trí các thẻ được xáo trộn ngẫu nhiên hoàn toàn.</p>
       </div>
 
       {isCompleted ? (
@@ -2578,15 +2657,20 @@ function WordMatchView({ words, onBack, darkMode, muted, onGainXp, updateHighSco
           </div>
           <h4 className="text-2xl font-black">Xuất Sắc! Hoàn Thành Ghép Từ!</h4>
           <p className="text-xs text-slate-400">+120 XP thưởng đã được cộng.</p>
-          <button onClick={onBack} className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-amber-500 text-white">
-            Trở Về Trang Chủ
-          </button>
+          <div className="flex justify-center gap-3">
+            <button onClick={onBack} className={`px-5 py-3 rounded-xl font-bold text-sm ${darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-200 hover:bg-slate-300'}`}>
+              Trang Chủ
+            </button>
+            <button onClick={restartRound} className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-amber-500 text-white">
+              Chơi Vòng Mới (Random)
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
           {gridItems.map((item, idx) => {
             const isMatched = matchedIds.includes(item.id);
-            const isSelected = selectedItem?.val === item.val;
+            const isSelected = selectedItem?.val === item.val && selectedItem?.type === item.type;
 
             let cardStyle = darkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300';
 
@@ -2624,15 +2708,22 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
+  const [runKey, setRunKey] = useState(0);
 
-  const currentWord = words[currentIndex % words.length] || words[0];
+  // Fully shuffled pool of words for this 30s run
+  const shuffledRunWords = useMemo(() => {
+    return shuffleArray(words);
+  }, [words, runKey]);
 
+  const currentWord = shuffledRunWords[currentIndex % shuffledRunWords.length] || shuffledRunWords[0];
+
+  // Completely random 4 options for each question
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
-    const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words, currentWord]);
+    const selectedWrong = shuffleArray(wrong).slice(0, 3);
+    return shuffleArray([...selectedWrong, currentWord]);
+  }, [currentIndex, words, currentWord, runKey]);
 
   useEffect(() => {
     let timer = null;
@@ -2648,6 +2739,7 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
 
   const startSpeedRun = () => {
     if (!muted) sfx.click();
+    setRunKey(k => k + 1);
     setTimeLeft(30);
     setScore(0);
     setCurrentIndex(0);
@@ -2687,9 +2779,9 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
           </div>
           <div>
             <h3 className="text-2xl font-black">Speed Run 30s Attack</h3>
-            <p className="text-xs text-slate-400 mt-1">Trả lời càng nhiều từ vựng đúng càng tốt trong 30 giây!</p>
+            <p className="text-xs text-slate-400 mt-1">Từ vựng xuất hiện ngẫu nhiên hoàn toàn. Trả lời đúng càng nhiều càng tốt!</p>
           </div>
-          <button onClick={startSpeedRun} className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
+          <button onClick={startSpeedRun} className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:opacity-90 active:scale-95 transition">
             Sẵn Sàng? Bắt Đầu!
           </button>
         </div>
@@ -2716,7 +2808,7 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
               <button
                 key={opt.id}
                 onClick={() => handleAnswer(opt)}
-                className={`p-4 rounded-2xl border text-center font-bold text-sm transition hover:scale-105 ${darkMode ? 'bg-slate-900 border-slate-800 hover:border-purple-500' : 'bg-white border-slate-200 hover:border-purple-500'}`}
+                className={`p-4 rounded-2xl border text-center font-bold text-sm transition hover:scale-105 active:scale-95 ${darkMode ? 'bg-slate-900 border-slate-800 hover:border-purple-500' : 'bg-white border-slate-200 hover:border-purple-500'}`}
               >
                 {opt.meaning}
               </button>
@@ -2729,8 +2821,8 @@ function SpeedRunView({ words, onBack, darkMode, muted, onGainXp, highScore, upd
         <div className={`p-8 rounded-3xl border text-center space-y-6 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
           <h3 className="text-3xl font-black text-amber-400">Hết Giờ!</h3>
           <div className="text-lg">Tổng điểm của bạn: <span className="font-extrabold text-2xl text-emerald-400">{score}</span></div>
-          <button onClick={startSpeedRun} className="w-full py-3.5 rounded-xl font-bold bg-purple-600 text-white">
-            Chơi Lại
+          <button onClick={startSpeedRun} className="w-full py-3.5 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 active:scale-95 transition text-white">
+            Chơi Lại Vòng Mới
           </button>
         </div>
       )}

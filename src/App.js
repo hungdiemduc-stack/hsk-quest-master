@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Check, X, Zap, Award, BookOpen, Layers, HelpCircle, Timer, ArrowRight, BarChart2, CheckCircle2, AlertCircle, CheckCircle, Send, Bot, Settings, Lightbulb, User } from 'lucide-react';
+import { Shuffle, Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Check, X, Zap, Award, BookOpen, Layers, HelpCircle, Timer, ArrowRight, BarChart2, CheckCircle2, AlertCircle, CheckCircle, Send, Bot, Settings, Lightbulb, User } from 'lucide-react';
 
 // ==========================================
 // HSK VOCABULARY DATABASE (HSK 1 - HSK 4)
@@ -8418,6 +8418,19 @@ const HSK_DATA = {
   }]
 };
 
+// Fisher-Yates (Knuth) True Uniform Random Shuffle Algorithm
+function shuffleArray(array) {
+  if (!array || array.length <= 1) return array ? [...array] : [];
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+}
+
 // RPG Titles based on HSK Level & XP
 const getPlayerTitle = (level, hskLvl) => {
   if (hskLvl === 1) return `Tân Thủ HSK 1 (LV.${level})`;
@@ -9308,20 +9321,33 @@ function FlashcardView({
   masteredWords,
   toggleMastered
 }) {
+  const [isShuffled, setIsShuffled] = useState(true);
+  const [deckKey, setDeckKey] = useState(0);
+
+  // Deck is randomized by default using Fisher-Yates
+  const deck = useMemo(() => {
+    return isShuffled ? shuffleArray(words) : [...words];
+  }, [words, isShuffled, deckKey]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const currentWord = words[index] || words[0];
+  const currentWord = deck[index] || deck[0];
   const isMastered = masteredWords.has(currentWord?.id);
+  const handleShuffle = () => {
+    if (!muted) sfx.click();
+    setDeckKey(k => k + 1);
+    setIndex(0);
+    setFlipped(false);
+  };
   const handleNext = () => {
     if (!muted) sfx.click();
     setFlipped(false);
-    setIndex(prev => prev < words.length - 1 ? prev + 1 : 0);
+    setIndex(prev => prev < deck.length - 1 ? prev + 1 : 0);
     onGainXp(5);
   };
   const handlePrev = () => {
     if (!muted) sfx.click();
     setFlipped(false);
-    setIndex(prev => prev > 0 ? prev - 1 : words.length - 1);
+    setIndex(prev => prev > 0 ? prev - 1 : deck.length - 1);
   };
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-xl mx-auto space-y-6"
@@ -9331,8 +9357,23 @@ function FlashcardView({
     onClick: onBack,
     className: `px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition ${darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-200 hover:bg-slate-300'}`
   }, "\u2190 Quay l\u1EA1i"), /*#__PURE__*/React.createElement("div", {
-    className: "text-xs font-semibold text-slate-400"
-  }, "Th\u1EBB ", index + 1, " / ", words.length)), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: handleShuffle,
+    className: `px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${darkMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-400' : 'bg-slate-200 hover:bg-slate-300 text-amber-700'}`,
+    title: "X\xE1o tr\u1ED9n ng\u1EABu nhi\xEAn to\xE0n b\u1ED9 th\u1EBB"
+  }, /*#__PURE__*/React.createElement(Shuffle, {
+    className: "w-3.5 h-3.5"
+  }), /*#__PURE__*/React.createElement("span", null, "X\xE1o th\u1EBB")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setIsShuffled(!isShuffled);
+      setIndex(0);
+      setFlipped(false);
+    },
+    className: `px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition ${isShuffled ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-slate-700 text-slate-400'}`
+  }, isShuffled ? '🎲 Ngẫu nhiên' : '🔤 A-Z'), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-semibold text-slate-400 ml-1"
+  }, index + 1, " / ", deck.length))), /*#__PURE__*/React.createElement("div", {
     onClick: () => setFlipped(!flipped),
     className: `relative min-h-[360px] rounded-3xl border cursor-pointer transition-all duration-500 p-8 flex flex-col items-center justify-between shadow-2xl text-center select-none ${darkMode ? 'bg-gradient-to-b from-slate-900 to-slate-900/90 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300'}`
   }, /*#__PURE__*/React.createElement("div", {
@@ -9393,9 +9434,12 @@ function QuizQuestView({
   onGainXp,
   updateHighScore
 }) {
+  const [sessionKey, setSessionKey] = useState(0);
+
+  // Truly random 15 words chosen with Fisher-Yates
   const sessionWords = useMemo(() => {
-    return [...words].sort(() => 0.5 - Math.random()).slice(0, 15);
-  }, [words]);
+    return shuffleArray(words).slice(0, 15);
+  }, [words, sessionKey]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hearts, setHearts] = useState(3);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -9403,12 +9447,14 @@ function QuizQuestView({
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const currentWord = sessionWords[currentIndex] || sessionWords[0];
+
+  // Truly random 4 options for current question, with answer shuffled uniformly
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
-    const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words, currentWord]);
+    const selectedWrong = shuffleArray(wrong).slice(0, 3);
+    return shuffleArray([...selectedWrong, currentWord]);
+  }, [currentIndex, words, currentWord, sessionKey]);
   const handleSelect = option => {
     if (isAnswered) return;
     setSelectedOption(option);
@@ -9439,6 +9485,7 @@ function QuizQuestView({
     }
   };
   const resetGame = () => {
+    setSessionKey(k => k + 1);
     setCurrentIndex(0);
     setHearts(3);
     setScore(0);
@@ -9477,7 +9524,7 @@ function QuizQuestView({
     }, "Quay l\u1EA1i Hub"), /*#__PURE__*/React.createElement("button", {
       onClick: resetGame,
       className: "flex-1 py-3 rounded-xl font-bold text-sm bg-red-600 hover:bg-red-500 text-white"
-    }, "Th\u1EED l\u1EA1i")));
+    }, "V\xF2ng M\u1EDBi (Random)")));
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-xl mx-auto space-y-6"
@@ -9548,8 +9595,12 @@ function WordMatchView({
   const [selectedItem, setSelectedItem] = useState(null);
   const [matchedIds, setMatchedIds] = useState([]);
   const [score, setScore] = useState(0);
+  const [roundKey, setRoundKey] = useState(0);
   useEffect(() => {
-    const selectedSub = [...words].sort(() => 0.5 - Math.random()).slice(0, 6);
+    // 1. Pick 6 random words with Fisher-Yates
+    const selectedSub = shuffleArray(words).slice(0, 6);
+
+    // 2. Generate Hanzi and Meaning cards
     const hanziList = selectedSub.map(w => ({
       id: w.id,
       type: 'hanzi',
@@ -9561,8 +9612,16 @@ function WordMatchView({
       type: 'meaning',
       val: w.meaning
     }));
-    setGridItems([...hanziList, ...meaningList].sort(() => 0.5 - Math.random()));
-  }, [words]);
+
+    // 3. Shuffle all 12 cards thoroughly across grid
+    setGridItems(shuffleArray([...hanziList, ...meaningList]));
+    setSelectedItem(null);
+    setMatchedIds([]);
+  }, [words, roundKey]);
+  const restartRound = () => {
+    if (!muted) sfx.click();
+    setRoundKey(k => k + 1);
+  };
   const handleCardClick = item => {
     if (matchedIds.includes(item.id)) return;
     if (!selectedItem) {
@@ -9595,15 +9654,23 @@ function WordMatchView({
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onBack,
     className: `px-3 py-1.5 rounded-lg text-sm font-semibold ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`
-  }, "\u2190 Quay l\u1EA1i"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2190 Quay l\u1EA1i"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: restartRound,
+    className: `px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${darkMode ? 'bg-slate-800 hover:bg-slate-700 text-emerald-400' : 'bg-slate-200 hover:bg-slate-300 text-emerald-700'}`,
+    title: "\u0110\u1ED5i b\u1ED9 6 t\u1EEB m\u1EDBi ng\u1EABu nhi\xEAn"
+  }, /*#__PURE__*/React.createElement(Shuffle, {
+    className: "w-3.5 h-3.5"
+  }), /*#__PURE__*/React.createElement("span", null, "\u0110\u1ED5i b\u1ED9 t\u1EEB m\u1EDBi")), /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-semibold text-slate-400"
-  }, "\u0110\xE3 gh\xE9p: ", matchedIds.length, " / 6 C\u1EB7p")), /*#__PURE__*/React.createElement("div", {
+  }, "\u0110\xE3 gh\xE9p: ", matchedIds.length, " / 6 C\u1EB7p"))), /*#__PURE__*/React.createElement("div", {
     className: "text-center"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "text-xl font-bold"
   }, "Gh\xE9p Ch\u1EEF H\xE1n & Ti\u1EBFng Vi\u1EC7t"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 mt-1"
-  }, "N\u1ED1i \u0111\xFAng c\xE1c \xF4 t\u01B0\u01A1ng \u1EE9ng.")), isCompleted ? /*#__PURE__*/React.createElement("div", {
+  }, "V\u1ECB tr\xED c\xE1c th\u1EBB \u0111\u01B0\u1EE3c x\xE1o tr\u1ED9n ng\u1EABu nhi\xEAn ho\xE0n to\xE0n.")), isCompleted ? /*#__PURE__*/React.createElement("div", {
     className: `p-8 rounded-3xl border text-center space-y-4 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto"
@@ -9613,14 +9680,19 @@ function WordMatchView({
     className: "text-2xl font-black"
   }, "Xu\u1EA5t S\u1EAFc! Ho\xE0n Th\xE0nh Gh\xE9p T\u1EEB!"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400"
-  }, "+120 XP th\u01B0\u1EDFng \u0111\xE3 \u0111\u01B0\u1EE3c c\u1ED9ng."), /*#__PURE__*/React.createElement("button", {
+  }, "+120 XP th\u01B0\u1EDFng \u0111\xE3 \u0111\u01B0\u1EE3c c\u1ED9ng."), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
     onClick: onBack,
+    className: `px-5 py-3 rounded-xl font-bold text-sm ${darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-200 hover:bg-slate-300'}`
+  }, "Trang Ch\u1EE7"), /*#__PURE__*/React.createElement("button", {
+    onClick: restartRound,
     className: "px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-amber-500 text-white"
-  }, "Tr\u1EDF V\u1EC1 Trang Ch\u1EE7")) : /*#__PURE__*/React.createElement("div", {
+  }, "Ch\u01A1i V\xF2ng M\u1EDBi (Random)"))) : /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-3 sm:grid-cols-4 gap-3"
   }, gridItems.map((item, idx) => {
     const isMatched = matchedIds.includes(item.id);
-    const isSelected = selectedItem?.val === item.val;
+    const isSelected = selectedItem?.val === item.val && selectedItem?.type === item.type;
     let cardStyle = darkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300';
     if (isMatched) {
       cardStyle = 'bg-emerald-500/10 border-emerald-500/30 opacity-30 pointer-events-none';
@@ -9656,13 +9728,21 @@ function SpeedRunView({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
-  const currentWord = words[currentIndex % words.length] || words[0];
+  const [runKey, setRunKey] = useState(0);
+
+  // Fully shuffled pool of words for this 30s run
+  const shuffledRunWords = useMemo(() => {
+    return shuffleArray(words);
+  }, [words, runKey]);
+  const currentWord = shuffledRunWords[currentIndex % shuffledRunWords.length] || shuffledRunWords[0];
+
+  // Completely random 4 options for each question
   const options = useMemo(() => {
     if (!currentWord) return [];
     const wrong = words.filter(w => w.id !== currentWord.id);
-    const shuffledWrong = [...wrong].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [...shuffledWrong, currentWord].sort(() => 0.5 - Math.random());
-  }, [currentIndex, words, currentWord]);
+    const selectedWrong = shuffleArray(wrong).slice(0, 3);
+    return shuffleArray([...selectedWrong, currentWord]);
+  }, [currentIndex, words, currentWord, runKey]);
   useEffect(() => {
     let timer = null;
     if (isActive && timeLeft > 0) {
@@ -9676,6 +9756,7 @@ function SpeedRunView({
   }, [isActive, timeLeft, score, updateHighScore]);
   const startSpeedRun = () => {
     if (!muted) sfx.click();
+    setRunKey(k => k + 1);
     setTimeLeft(30);
     setScore(0);
     setCurrentIndex(0);
@@ -9715,9 +9796,9 @@ function SpeedRunView({
     className: "text-2xl font-black"
   }, "Speed Run 30s Attack"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 mt-1"
-  }, "Tr\u1EA3 l\u1EDDi c\xE0ng nhi\u1EC1u t\u1EEB v\u1EF1ng \u0111\xFAng c\xE0ng t\u1ED1t trong 30 gi\xE2y!")), /*#__PURE__*/React.createElement("button", {
+  }, "T\u1EEB v\u1EF1ng xu\u1EA5t hi\u1EC7n ng\u1EABu nhi\xEAn ho\xE0n to\xE0n. Tr\u1EA3 l\u1EDDi \u0111\xFAng c\xE0ng nhi\u1EC1u c\xE0ng t\u1ED1t!")), /*#__PURE__*/React.createElement("button", {
     onClick: startSpeedRun,
-    className: "w-full py-4 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+    className: "w-full py-4 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:opacity-90 active:scale-95 transition"
   }, "S\u1EB5n S\xE0ng? B\u1EAFt \u0110\u1EA7u!")), isActive && /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
   }, /*#__PURE__*/React.createElement("div", {
@@ -9739,7 +9820,7 @@ function SpeedRunView({
   }, options.map(opt => /*#__PURE__*/React.createElement("button", {
     key: opt.id,
     onClick: () => handleAnswer(opt),
-    className: `p-4 rounded-2xl border text-center font-bold text-sm transition hover:scale-105 ${darkMode ? 'bg-slate-900 border-slate-800 hover:border-purple-500' : 'bg-white border-slate-200 hover:border-purple-500'}`
+    className: `p-4 rounded-2xl border text-center font-bold text-sm transition hover:scale-105 active:scale-95 ${darkMode ? 'bg-slate-900 border-slate-800 hover:border-purple-500' : 'bg-white border-slate-200 hover:border-purple-500'}`
   }, opt.meaning)))), isEnded && /*#__PURE__*/React.createElement("div", {
     className: `p-8 rounded-3xl border text-center space-y-6 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`
   }, /*#__PURE__*/React.createElement("h3", {
@@ -9750,8 +9831,8 @@ function SpeedRunView({
     className: "font-extrabold text-2xl text-emerald-400"
   }, score)), /*#__PURE__*/React.createElement("button", {
     onClick: startSpeedRun,
-    className: "w-full py-3.5 rounded-xl font-bold bg-purple-600 text-white"
-  }, "Ch\u01A1i L\u1EA1i")));
+    className: "w-full py-3.5 rounded-xl font-bold bg-purple-600 hover:bg-purple-500 active:scale-95 transition text-white"
+  }, "Ch\u01A1i L\u1EA1i V\xF2ng M\u1EDBi")));
 }
 
 // ==========================================

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Shuffle, Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Check, X, Zap, Award, BookOpen, Layers, HelpCircle, Timer, ArrowRight, BarChart2, CheckCircle2, AlertCircle, CheckCircle, Send, Bot, Settings, Lightbulb, User } from 'lucide-react';
+import { Shuffle, Sparkles, Trophy, Flame, Heart, Volume2, VolumeX, Moon, Sun, Check, X, Zap, Award, BookOpen, Layers, HelpCircle, Timer, ArrowRight, BarChart2, CheckCircle2, AlertCircle, CheckCircle, Send, Bot, Settings, Lightbulb, User, AlertTriangle, Users } from 'lucide-react';
 
 // ==========================================
 // HSK VOCABULARY DATABASE (HSK 1 - HSK 4)
@@ -8502,134 +8502,469 @@ const speakText = (text, isMuted = false) => {
 };
 
 // ==========================================
-// AI CHINESE TUTOR - INTELLIGENT ENGINE
+// AI CHINESE ROLEPLAY PERSONAS & GRAMMAR ENGINE
 // ==========================================
-function getBuiltInAIResponse(userText, hskLevel) {
-  const q = userText.trim().toLowerCase();
 
-  // 1. Chào hỏi / Greetings
-  if (['chào', 'hello', 'hi', '你好', 'xin chào', 'hế lô', 'alo'].some(k => q.includes(k))) {
+const AI_PERSONAS = [{
+  id: 'teacher',
+  name: 'Cô giáo Tiểu Hoa',
+  cnName: '小华老师',
+  char: '华',
+  role: 'Gia sư HSK Chuẩn Mực',
+  tag: '👩‍🏫 Gia Sư HSK',
+  gradient: 'from-rose-500 via-red-500 to-amber-500',
+  badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+  desc: 'Ân cần, dịu dàng, phát âm chuẩn Bắc Kinh, tận tình sửa lỗi ngữ pháp HSK và động viên bạn.',
+  welcomeMsg: {
+    text: '你好！我是小华老师。今天你想用中文聊些什么呢？',
+    pinyin: 'Nǐ hǎo! Wǒ shì Xiǎohuá lǎoshī. Jīntiān nǐ xiǎng yòng zhōngwén liáo xiē shénme ne?',
+    translation: 'Xin chào em! Cô là cô giáo Tiểu Hoa. Hôm nay em muốn trò chuyện về chủ đề gì bằng tiếng Trung nào?',
+    notes: '💡 Em có thể gõ chữ Hán, Pinyin hoặc tiếng Việt. Nếu có lỗi ngữ pháp, cô sẽ nhẹ nhàng chỉ ra và hướng dẫn sửa nhé!'
+  },
+  quickTopics: [{
+    label: '📖 Hỏi ngữ pháp HSK',
+    prompt: '老师，怎样才能提高汉语听力和口语水平？'
+  }, {
+    label: '🗣️ Tự giới thiệu',
+    prompt: '你好！我叫阿明，今年二十岁，很高兴认识你！'
+  }, {
+    label: '✍️ Nhờ sửa câu',
+    prompt: '老师，请帮我检查这句话对不对？'
+  }, {
+    label: '🧪 Thử câu sai (là rất vui)',
+    prompt: '我是很高兴。'
+  }]
+}, {
+  id: 'friend',
+  name: 'Bạn thân Tiểu Minh',
+  cnName: '小明',
+  char: '明',
+  role: 'Bạn thân đời sống',
+  tag: '☕ Bạn Bè Đồng Lứa',
+  gradient: 'from-sky-500 via-blue-600 to-indigo-600',
+  badgeColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+  desc: 'Bạn cùng tuổi vui tính, nói tiếng Trung đời sống tự nhiên, thích rủ trà sữa, chơi game, đi dạo phố.',
+  welcomeMsg: {
+    text: '嘿，兄弟！我是小明。好久不见啦！今天下课后想去哪儿玩？喝奶茶还是打游戏？随便聊聊吧，说错了哥们儿随时帮你纠正！',
+    pinyin: 'Hēi, xiōngdì! Wǒ shì Xiǎomíng. Hǎojiǔ bú jiàn la! Jīntiān xiàkè hòu xiǎng qù nǎr wán? Hē nǎichá háishì dǎ yóuxì? Suíbiàn liáo liáo ba, shuō cuò le gēmenr suíshí bāng nǐ jiūzhèng!',
+    translation: 'Ê bạn hiền! Mình là Tiểu Minh đây. Lâu quá không gặp! Tan học hôm nay muốn đi đâu chơi? Uống trà sữa hay chơi game? Cứ tán gẫu thoải mái nhé, nói sai mình sửa cho ngay!',
+    notes: '💡 Cùng Tiểu Minh luyện khẩu ngữ tiếng lóng, tiếng Trung đời sống và giao tiếp giới trẻ siêu tự nhiên!'
+  },
+  quickTopics: [{
+    label: '🧋 Rủ uống trà sữa',
+    prompt: '下课后我们一起去喝一杯珍珠奶茶吧！'
+  }, {
+    label: '🎮 Rủ chơi game',
+    prompt: '今晚有空吗？要不要一起打游戏？'
+  }, {
+    label: '😩 Kêu bài tập nhiều',
+    prompt: '今天的中文作业太多了，我都写不完了！'
+  }, {
+    label: '🧪 Thử câu sai (2 người)',
+    prompt: '我们二个人一起去吧。'
+  }]
+}, {
+  id: 'boss',
+  name: 'Quản lý Trương',
+  cnName: '张经理',
+  char: '张',
+  role: 'Sếp / Quản lý công sở',
+  tag: '💼 Môi Trường Công Sở',
+  gradient: 'from-emerald-600 via-teal-600 to-cyan-600',
+  badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  desc: 'Phong cách chuyên nghiệp, lịch thiệp, giúp bạn luyện phỏng vấn xin việc, đàm phán và báo cáo công việc.',
+  welcomeMsg: {
+    text: '你好！我是张经理。很高兴在公司与你沟通。无论想练习商务中文、面试技巧还是工作汇报，请随时开口。若有表达不当，我会严谨指出。',
+    pinyin: 'Nǐ hǎo! Wǒ shì Zhāng jīnglǐ. Hěn gāoxìng zài gōngsī yǔ nǐ gōutōng. Wúlùn xiǎng liànxí shāngwù zhōngwén, miànshì jìqiǎo háishì gōngzuò huìbào, qǐng suíshí kāikǒu. Ruò yǒu biǎodá bùdàng, wǒ huì yánjǐn zhǐ chū.',
+    translation: 'Chào bạn! Tôi là Quản lý Trương. Rất vui được trao đổi với bạn tại công ty. Dù muốn luyện tiếng Trung thương mại, kỹ năng phỏng vấn hay báo cáo công việc, xin cứ thoải mái. Nếu có chỗ diễn đạt chưa chuẩn, tôi sẽ chỉ rõ cho bạn.',
+    notes: '💡 Luyện tiếng Trung thương mại và tác phong công sở: xưng hô lịch sự, từ ngữ trang trọng.'
+  },
+  quickTopics: [{
+    label: '💼 Xin nghỉ phép 1 ngày',
+    prompt: '张经理，我明天有点私事，想请假一天，可以吗？'
+  }, {
+    label: '📊 Báo cáo tiến độ',
+    prompt: '张经理，本周的项目工作我已经顺利完成了。'
+  }, {
+    label: '🤝 Phỏng vấn xin việc',
+    prompt: '非常感谢张经理给我这次面试的机会。'
+  }, {
+    label: '🧪 Thử câu sai (ở công ty)',
+    prompt: '我工作在公司。'
+  }]
+}, {
+  id: 'merchant',
+  name: 'Chủ tiệm Lão Vương',
+  cnName: '老王老板',
+  char: '王',
+  role: 'Chủ quán ăn & Cửa tiệm',
+  tag: '🍜 Quán Ăn & Mua Sắm',
+  gradient: 'from-amber-500 via-orange-500 to-red-600',
+  badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  desc: 'Hào sảng, hiếu khách, giúp bạn luyện gọi món ăn, hỏi kích cỡ, trả giá mặc cả như người bản xứ.',
+  welcomeMsg: {
+    text: '哎呀，欢迎光临！我是老王。本店饭菜地道、货真价实！你想吃点什么，或者挑点什么好东西？尽管跟大叔开口，说错了大叔免费给你纠正！',
+    pinyin: 'Āiyā, huānyíng guānglín! Wǒ shì Lǎo Wáng. Běndiàn fàncài dìdào, huòzhēnjiàshí! Nǐ xiǎng chī diǎn shénme, huòzhě tiāo diǎn shénme hǎo dōngxi? Jǐnguǎn gēn dàshū kāikǒu, shuō cuò le dàshū miǎnfèi gěi nǐ jiūzhèng!',
+    translation: 'Úi chà, hoan nghênh quý khách! Bác là Lão Vương đây. Quán bác đồ ăn chuẩn vị, hàng hóa chất lượng! Cháu muốn ăn gì hay chọn đồ gì nào? Cứ nói với bác nhé, nói sai bác sửa miễn phí cho luôn!',
+    notes: '💡 Rất thích hợp luyện các câu khẩu ngữ: gọi món, nêm nếm gia vị, hỏi giá và mặc cả tiền tệ.'
+  },
+  quickTopics: [{
+    label: '🍜 Gọi bát mì bò ít cay',
+    prompt: '老板，来一碗牛肉面，少放点辣椒！'
+  }, {
+    label: '🛍️ Mặc cả giá rẻ hơn',
+    prompt: '这件衣服太贵了，能不能便宜一点？二百块卖吗？'
+  }, {
+    label: '🧾 Tính tiền / Quét mã',
+    prompt: '老板买单，请问可以微信或者支付宝扫码吗？'
+  }, {
+    label: '🧪 Thử câu sai (mua 2 cái)',
+    prompt: '老板，我要买二个包子。'
+  }]
+}, {
+  id: 'guide',
+  name: 'HDV Du Lịch Tiểu Linh',
+  cnName: '小玲导游',
+  char: '玲',
+  role: 'Hướng dẫn viên du lịch',
+  tag: '✈️ Du Lịch & Khám Phá',
+  gradient: 'from-teal-500 via-emerald-500 to-cyan-600',
+  badgeColor: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+  desc: 'Năng động, hiểu biết, dẫn bạn đi khắp danh lam thắng cảnh Trung Quốc, hỗ trợ hỏi đường, đặt vé, khách sạn.',
+  welcomeMsg: {
+    text: '哈喽！我是导游小玲。欢迎来到中国！北京故宫、上海外滩还是西安兵马俑你想去哪儿？问路、买票、订酒店都可以和我聊，有语法错误我帮你纠正哦！',
+    pinyin: 'Hā lóu! Wǒ shì dǎoyóu Xiǎolíng. Huānyíng lái dào Zhōngguó! Běijīng Gùgōng, Shànghǎi Wàitān háishì Xī\'ān Bīngmǎyǒng nǐ xiǎng qù nǎr? Wènlù, mǎi piào, dìng jiǔdiàn dōu kěyǐ hé wǒ liáo, yǒu yǔfǎ cuòwù wǒ bāng nǐ jiūzhèng o!',
+    translation: 'Chào bạn! Mình là hướng dẫn viên Tiểu Linh. Chào mừng bạn đến Trung Quốc! Tử Cấm Thành Bắc Kinh, Bến Thượng Hải hay Binh Mã Dũng Tây An bạn muốn đi đâu? Hỏi đường, mua vé, đặt phòng khách sạn cứ bảo mình nhé, sai ngữ pháp mình sửa liền!',
+    notes: '💡 Luyện tập các tình huống du lịch thực tế: hỏi tàu điện ngầm, mua vé thắng cảnh, đặt phòng khách sạn.'
+  },
+  quickTopics: [{
+    label: '🚇 Hỏi đường ga tàu',
+    prompt: '请问去北京西站坐几号线地铁？'
+  }, {
+    label: '🏨 Đặt phòng khách sạn',
+    prompt: '你好，我想预订一间大床房，住两晚。'
+  }, {
+    label: '🎫 Mua vé tham quan',
+    prompt: '请问故宫的门票多少钱一张？学生有打折吗？'
+  }, {
+    label: '🧪 Thử câu sai (ở đâu ma)',
+    prompt: '请问故宫在哪个地方吗？'
+  }]
+}];
+
+// Bộ phân tích & phát hiện lỗi ngữ pháp, cấu trúc câu tiếng Trung (Hán ngữ & Pinyin)
+function analyzeChineseGrammar(input) {
+  if (!input || typeof input !== 'string') return {
+    hasError: false
+  };
+  const text = input.trim();
+  const lower = text.toLowerCase().replace(/['"“”‘’]/g, '');
+
+  // 1. Lỗi dùng "是" trước vị ngữ tính từ (Adjective predicate error)
+  // Ví dụ: 我是很忙, 他是很累, 我是很高兴, wo shi hen mang, wo shi lei
+  const isAdjMatch = /(我|你|他|她|我们|你们|他们)\s*是\s*(很|非常|十分|特别)?\s*(高兴|好|累|忙|热|冷|难|贵|便宜|漂亮|可爱|远|饿|快|慢)/.test(text) || /\b(wo|ni|ta|women|nimen|tamen)\s+shi\s+(hen|feichang|tebie)?\s*(gaoxing|hao|lei|mang|re|leng|nan|gui|pianyi|piaoliang|keai|yuan|e|kuai|man)\b/.test(lower);
+  if (isAdjMatch) {
     return {
-      text: '你好呀！我是小华老师。很高兴和你一起练习中文！你今天想聊些什么呢？',
-      pinyin: 'Nǐ hǎo ya! Wǒ shì Xiǎohuá lǎoshī. Hěn gāoxìng hé nǐ yìqǐ liànxí zhōngwén! Nǐ jīntiān xiǎng liáo xiē shénme ne?',
-      translation: 'Chào em nhé! Cô là cô giáo Tiểu Hoa. Rất vui được cùng em luyện tiếng Trung! Hôm nay em muốn trò chuyện về chủ đề gì nào?',
-      notes: '💡 Gợi ý câu trả lời: 我今天想练习口语 (Hôm nay em muốn luyện khẩu ngữ).'
+      hasError: true,
+      errorSnippet: text.includes('是') ? '...是 + Tính từ (như “我是很高兴”)' : '...shi + Tính từ',
+      corrected: text.replace(/是\s*/g, '').replace(/\bshi\s+/gi, ''),
+      explanation: 'Trong tiếng Trung, câu vị ngữ tính từ không dùng động từ “是 (shì)”. Bạn chỉ cần nói: [Chủ ngữ] + [很/非常...] + [Tính từ]. (Ví dụ chuẩn: “我很高兴” thay vì “我是很高兴”).'
     };
   }
 
-  // 2. Hỏi thăm sức khỏe / How are you
-  if (['khỏe không', 'thế nào', '你好吗', '怎么样', 'dạo này'].some(k => q.includes(k))) {
+  // 2. Lỗi dùng "二" thay vì "两" trước lượng từ (Two vs Measure word)
+  // Ví dụ: 二个, 二只, 二本, 二杯, 二位, er ge, er zhi, er ben
+  const erMeasureMatch = /二\s*(个|只|本|杯|位|张|条|碗|瓶|斤|块钱)/.test(text) || /\ber\s+(ge|zhi|ben|bei|wei|zhang|tiao|wan|ping|jin|kuai)\b/.test(lower);
+  if (erMeasureMatch) {
     return {
-      text: '我很好，谢谢你的关心！你呢？今天心情怎么样？学中文累不累？',
-      pinyin: 'Wǒ hěn hǎo, xièxie nǐ de guānxīn! Nǐ ne? Jīntiān xīnlíng zěnmeyàng? Xué zhōngwén lèi bu lèi?',
-      translation: 'Cô rất khỏe, cảm ơn em đã quan tâm nhé! Còn em thì sao? Tâm trạng hôm nay thế nào? Học tiếng Trung có mệt không?',
-      notes: '💡 Em có thể đáp lại: 我不累，我很喜欢学习中文 (Em không mệt, em rất thích học tiếng Trung).'
+      hasError: true,
+      errorSnippet: text.includes('二') ? '二 + Lượng từ (ví dụ “二个”)' : 'er + Lượng từ',
+      corrected: text.replace(/二/g, '两').replace(/\ber\b/gi, 'liǎng'),
+      explanation: 'Khi biểu thị số lượng trước lượng từ danh từ, tiếng Trung bắt buộc dùng “两 (liǎng)” thay vì “二 (èr)”. (“二” chỉ dùng để đếm số thứ tự hoặc số điện thoại, số nhà).'
     };
   }
 
-  // 3. Tên tuổi / Giới thiệu
-  if (['tên là gì', 'giới thiệu', '你叫什么', '名字', '我是', 'tôi tên là', 'mình là', 'em là'].some(k => q.includes(k))) {
+  // 3. Lỗi trật tự trạng ngữ nơi chốn: Động từ + 在 + Địa điểm (Place word order)
+  // Ví dụ: 吃在饭馆, 学在学校, 工作在公司, chi zai fanguan, xue zai xuexiao, gongzuo zai gongsi
+  const placeOrderMatch = /(吃|学|学习|工作|买|看书|玩|做)\s*在\s*(学校|饭馆|饭店|公司|家里|家|图书馆|中国|北京|超市|机场)/.test(text) || /\b(chi|xue|xuexi|gongzuo|mai|kan\s*shu|wan|zuo)\s+zai\s+(xuexiao|fanguan|fandian|gongsi|jiali|jia|tushuguan|zhongguo|beijing|chaoshi|jichang)\b/.test(lower);
+  if (placeOrderMatch) {
     return {
-      text: '认识你很高兴！我是你的专属中文AI导师小华。无论你想练习HSK词汇、语法还是日常对话，我都会全力帮助你！',
-      pinyin: 'Rènshi nǐ hěn gāoxìng! Wǒ shì nǐ de zhuānshǔ zhōngwén AI dǎoshī Xiǎohuá. Wúlùn nǐ xiǎng liànxí HSK cíhuì, yǔfǎ háishì rìcháng duìhuà, wǒ dōu huì quánlì bāngzhù nǐ!',
-      translation: 'Rất vui được làm quen với em! Cô là Tiểu Hoa, gia sư AI tiếng Trung riêng của em. Dù em muốn luyện từ vựng HSK, ngữ pháp hay đối thoại thường ngày, cô đều sẽ dốc lòng giúp em!',
-      notes: '💡 Cấu trúc tự giới thiệu: 我叫...，今年...岁，我是学中文的学生。'
+      hasError: true,
+      errorSnippet: text.includes('在') ? '[Động từ] + 在 + [Địa điểm]' : '[Verb] + zai + [Place]',
+      corrected: '在 + [Địa điểm] + [Động từ] (Ví dụ: “在学校学习”, “在公司工作”)',
+      explanation: 'Quy tắc vàng ngữ pháp tiếng Trung: Trạng từ chỉ nơi chốn phải đứng TRƯỚC động từ: [Chủ ngữ] + 在 + Nơi chốn + [Động từ]. (Ví dụ chuẩn: “我在公司工作” chứ không nói “我工作在公司”).'
     };
   }
 
-  // 4. Gọi đồ uống / Trà sữa / Cà phê
-  if (['trà sữa', 'gọi đồ', 'uống', '奶茶', '咖啡', 'cà phê', '喝', 'quán'].some(k => q.includes(k))) {
+  // 4. Lỗi câu hỏi dùng cả đại từ nghi vấn lẫn trợ từ "吗" (Double interrogative marker)
+  // Ví dụ: 你是谁吗, 这是什么吗, 去哪儿吗, 几点吗, 怎么走吗, shenme ma, shei ma, na er ma
+  const doubleQuestionMatch = /(谁|什么|哪儿|哪里|怎么|几|多少|为什么).*吗/.test(text) || /\b(shei|shui|shenme|nar|nali|zenme|ji|duoshao|weishenme)\b.*(ma\??)$/.test(lower);
+  if (doubleQuestionMatch) {
     return {
-      text: '欢迎光临！请问你想喝点什么？我们有招牌珍珠奶茶和冰美式咖啡。你想喝热的还是冰的？甜度要怎么选？',
-      pinyin: 'Huānyíng guānglín! Qǐngwèn nǐ xiǎng hē diǎn shénme? Wǒmen yǒu zhāopái zhēnzhū nǎichá hé bīng měishì kāfēi. Nǐ xiǎng hē rè de háishì bīng de? Tiándù yào zěnme xuǎn?',
-      translation: 'Hoan nghênh quý khách! Xin hỏi bạn muốn uống gì ạ? Quán chúng tôi có trà sữa trân châu đặc biệt và cà phê Americano đá. Bạn muốn uống nóng hay đá? Độ ngọt chọn thế nào?',
-      notes: '💡 Mẹo gọi chuẩn vị: “我要一杯珍珠奶茶，半糖少冰 (Cho tôi 1 cốc trà sữa trân châu, nửa đường ít đá)”.'
+      hasError: true,
+      errorSnippet: 'Từ để hỏi (什么/谁/哪儿...) + ... 吗？',
+      corrected: text.replace(/吗\??/g, '？').replace(/\bma\??/gi, '?'),
+      explanation: 'Khi trong câu đã có đại từ nghi vấn (如: 谁, 什么, 哪儿, 怎么, 几...), tuyệt đối không dùng thêm trợ từ nghi vấn “吗” ở cuối câu.'
     };
   }
 
-  // 5. Ăn uống / Nhà hàng / Món ăn
-  if (['ăn', 'cơm', 'đói', 'món', '吃饭', '饿', '菜单', 'nhà hàng', 'menu'].some(k => q.includes(k))) {
+  // 5. Lỗi dùng "和" để nối hai mệnh đề / hai động từ (Conjunction 'he' error)
+  const heClauseMatch = /(我|他|她|我们|你们|他们)[^,，。！？]+(和)\s*(我|他|她|我们|你们|他们)/.test(text) && (text.includes('吃') || text.includes('去') || text.includes('学') || text.includes('想') || text.includes('喝'));
+  if (heClauseMatch) {
     return {
-      text: '服务员，请给我们看一下菜单！中国有很多特色美食，比如北京烤鸭、宫保鸡丁和火锅。你平时最喜欢吃哪道菜？',
-      pinyin: 'Fúwùyuán, qǐng gěi wǒmen kàn yíxià càidān! Zhōngguó yǒu hěn duō tèsè měishí, bǐrú Běijīng kǎoyā, gōngbǎo jīdīng hé huǒguō. Nǐ píngshí zuì xǐhuan chī nǎ dào cài?',
-      translation: 'Phục vụ ơi, xin cho chúng tôi xem thực đơn một chút! Trung Quốc có rất nhiều món ngon đặc sắc, ví dụ như vịt quay Bắc Kinh, gà xào Cung Bảo và lẩu. Bình thường em thích ăn món nào nhất?',
-      notes: '💡 Khi thanh toán, hãy nói: 服务员，买单！(Fúwùyuán, mǎidān! - Phục vụ ơi, tính tiền!)'
+      hasError: true,
+      errorSnippet: 'Dùng “和 (hé)” để liên kết hai vế câu/mệnh đề',
+      corrected: text.replace(/和\s*/, '，而且 ').replace(/\bhe\s+/gi, ', erqie '),
+      explanation: 'Từ “和 (hé)” chỉ dùng để nối 2 danh từ hoặc đại từ (ví dụ: “我和你”). Khi liên kết hai hành động hoặc mệnh đề, hãy dùng dấu phẩy, “也” hoặc “而且 / 然后”.'
     };
   }
 
-  // 6. Hỏi đường / Giao thông / Sân bay
-  if (['đường', 'hỏi đường', 'sân bay', 'ở đâu', 'chỗ nào', '去', '怎么走', '机场', '车站'].some(k => q.includes(k))) {
+  // 6. Lỗi dùng "很" trong câu so sánh chữ "比" (Comparative 'bi' with 'hen')
+  const biHenMatch = /比[^,，。！？]+很\s*(大|小|多|少|贵|便宜|高|快|好|漂亮)/.test(text) || /\bbi\b.+\bhen\b/.test(lower);
+  if (biHenMatch) {
     return {
-      text: '去机场的话，往前一直走，在第一个红绿灯往右拐，然后坐地铁三号线就能直达，非常方便！',
-      pinyin: 'Qù jīchǎng de huà, wǎng qián yìzhí zǒu, zài dì yī gè hónglǜdēng wǎng yòu guǎi, ránhòu zuò dìtiě sān hào xiàn jiù néng zhídá, fēicháng fāngbiàn!',
-      translation: 'Nếu muốn đi sân bay, hãy đi thẳng về phía trước, ở cột đèn giao thông đầu tiên thì rẽ phải, sau đó đi tàu điện ngầm tuyến số 3 là tới thẳng, rất thuận tiện!',
-      notes: '💡 Từ vựng định hướng: 一直走 (đi thẳng), 往右拐 (rẽ phải), 往左拐 (rẽ trái).'
+      hasError: true,
+      errorSnippet: '... 比 ... 很 + Tính từ (ví dụ “我比他很大”)',
+      corrected: text.replace(/很\s*/, '更 ').replace(/\bhen\s+/gi, 'gèng '),
+      explanation: 'Trong câu so sánh dùng chữ “比 (bǐ)”, trước tính từ không được dùng “很”. Muốn nhấn mạnh sự vượt trội, hãy thay bằng “更 (gèng)” hoặc thêm “得多 / 多了” ở cuối câu.'
     };
   }
 
-  // 7. Mua sắm / Mặc cả giá
-  if (['tiền', 'bao nhiêu', 'đắt', 'rẻ', 'mặc cả', '多少钱', '贵', '便宜', '买', 'mua'].some(k => q.includes(k))) {
+  // 7. Lỗi thiếu trợ từ "得" trước bổ ngữ trạng thái (Missing 'de')
+  const missingDeMatch = /(跑|说|写|学|唱|跳|看|走)\s*很\s*(快|好|慢|漂亮|多|棒)/.test(text) || /\b(pao|shuo|xie|xue|chang|tiao|kan|zou)\s+hen\s+(kuai|hao|man|piaoliang|duo|bang)\b/.test(lower);
+  if (missingDeMatch) {
     return {
-      text: '老板说这件大衣要三百块钱。你可以这样砍价：“太贵了，能不能便宜一点？二百块卖不卖？”',
-      pinyin: 'Lǎobǎn shuō zhè jiàn dàyī yào sān bǎi kuài qián. Nǐ kěyǐ zhèyàng kǎnjià: “Tài guì le, néng bu néng piányi yìdiǎn? Èr bǎi kuài mài bu mài?”',
-      translation: 'Chủ quán bảo chiếc áo khoác này giá 300 tệ. Em có thể mặc cả như thế này: “Đắt quá rồi, có thể rẻ hơn chút không? 200 tệ bác có bán không?”',
-      notes: '💡 Câu cửa miệng khi mua hàng: 太贵了，便宜点吧！(Đắt quá, bớt chút đi mà!)'
+      hasError: true,
+      errorSnippet: '[Động từ] + 很 + [Tính từ] (như “跑很快”)',
+      corrected: text.replace(/(跑|说|写|学|唱|跳|看|走)\s*很/, '$1得很').replace(/\b(pao|shuo|xie|xue|chang|tiao|kan|zou)\s+hen\b/gi, '$1 de hen'),
+      explanation: 'Khi miêu tả hành động được thực hiện như thế nào (Bổ ngữ trạng thái), bắt buộc phải có trợ từ kết cấu “得 (de)” nối giữa động từ và tính từ: [Động từ] + 得 + 很/非常 + [Tính từ]. (Ví dụ: “跑得很快”, “说得很好”).'
     };
   }
 
-  // 8. Khen ngợi & Cảm ơn
-  if (['cảm ơn', 'thank', '谢谢', 'giỏi', 'hay', 'tuyệt', 'thích'].some(k => q.includes(k))) {
-    return {
-      text: '不客气！能帮到你我也感到非常开心。你的中文悟性很高，坚持每天练习，一定会取得巨大的进步！',
-      pinyin: 'Bú kèqi! Néng bāng dào nǐ wǒ yě gǎndào fēicháng kāixīn. Nǐ de zhōngwén wùxìng hěn gāo, jiānchí měitiān liànxí, yídìng huì qǔdé jùdà de jìnbù!',
-      translation: 'Không có chi em nhé! Giúp được em cô cũng thấy rất vui. Khả năng cảm thụ tiếng Trung của em rất tốt, kiên trì luyện tập mỗi ngày nhất định sẽ tiến bộ vượt bậc!',
-      notes: '💡 Đáp lại lời cảm ơn: 不客气 (Bú kèqi) hoặc 不用谢 (Bú yòng xiè).'
-    };
-  }
-
-  // 9. Ngữ pháp / Phương pháp học tiếng Trung
-  if (['ngữ pháp', 'học', 'bí quyết', 'làm sao', 'hsk', 'kinh nghiệm', 'phương pháp'].some(k => q.includes(k))) {
-    return {
-      text: '学好中文的秘密只有八个字：“多听、多读、敢说、不怕错”。每天背15个生词，多和我聊天，不知不觉就能考过HSK了！',
-      pinyin: 'Xué hǎo zhōngwén de mìmì zhǐ yǒu bā gè zì: “duō tīng, duō dú, gǎn shuō, bú pà cuò”. Měitiān bèi shíwǔ gè shēngcí, duō hé wǒ liáotiān, bùzhī bùjué jiù néng kǎo guò HSK le!',
-      translation: 'Bí quyết học giỏi tiếng Trung chỉ gói gọn trong 8 chữ: “Nghe nhiều, đọc nhiều, dám nói, không sợ sai”. Mỗi ngày thuộc 15 từ mới, thường xuyên chat với cô, chẳng mấy chốc sẽ thi đỗ HSK thôi!',
-      notes: '💡 Ngữ pháp HSK 3 trọng điểm: 一...就... (vừa... thì...), 动词 + 来/去 (bổ ngữ xu hướng).'
-    };
-  }
-
-  // 10. Tra cứu từ vựng / Giải nghĩa
-  if (['nghĩa là gì', 'là gì', 'nghĩa của', 'tiếng trung là gì'].some(k => q.includes(k))) {
-    return {
-      text: '学习新生词时，记得结合语境造句哦！比如“努力 (nǔlì)”是努力/cố gắng，造句：“只要努力，就一定能学好中文！”',
-      pinyin: 'Xuéxí xīn shēngcí shí, jìde jiéhé yǔjìng zàojù o! Bǐrú “nǔlì” shì nỗ lực/cố gắng, zàojù: “Zhǐyào nǔlì, jiù yídìng néng xué hǎo zhōngwén!”',
-      translation: 'Khi học từ vựng mới, nhớ kết hợp đặt câu theo ngữ cảnh nhé! Ví dụ từ “努力 (nǔlì)” nghĩa là nỗ lực/cố gắng, đặt câu: “Chỉ cần nỗ lực, nhất định sẽ học giỏi tiếng Trung!”',
-      notes: '💡 Trong game có tới 1.201 từ vựng HSK 1-4, em có thể qua mục Flashcard để tra cứu và luyện tập thêm nhé!'
-    };
-  }
-
-  // Fallback tổng quát tự nhiên
+  // Không phát hiện lỗi ngữ pháp -> Giao tiếp bình thường mượt mà!
   return {
-    text: `这句话说得很棒！“${userText}”。中文是一门很有魅力的语言，继续和我多聊几句吧，你想再探讨什么话题呢？`,
-    pinyin: `Zhè jù huà shuō de hěn bàng! “${userText}”. Zhōngwén shì yì mén hěn yǒu mèilì de yǔyán, jìxù hé wǒ duō liáo jǐ jù ba, nǐ xiǎng zài tàntǎo shénme huàtí ne?`,
-    translation: `Câu này em nói hay lắm! “${userText}”. Tiếng Trung là một ngôn ngữ vô cùng cuốn hút, hãy tiếp tục trò chuyện với cô thêm vài câu nhé, em muốn thảo luận về chủ đề gì tiếp theo?`,
-    notes: '💡 Hãy thử bấm vào các gợi ý tình huống ở trên như “Gọi trà sữa”, “Hỏi đường” hoặc “Mặc cả” để luyện tập phản xạ nhé!'
+    hasError: false
   };
 }
 
-// Gọi API Gemini hoặc OpenAI nếu có Custom Key
-async function callExternalAI(userText, apiKey, modelType, hskLevel) {
+// Built-in intelligent persona response generator
+function getBuiltInAIResponse(userText, hskLevel, personaId = 'teacher') {
+  const q = userText.trim().toLowerCase();
+  const persona = AI_PERSONAS.find(p => p.id === personaId) || AI_PERSONAS[0];
+  const grammarRes = analyzeChineseGrammar(userText);
+
+  // Phản hồi theo từng nhân vật nhập vai
+  let replyData = null;
+
+  // 1. CÔ GIÁO TIỂU HOA (Teacher)
+  if (personaId === 'teacher') {
+    if (['chào', 'hello', 'hi', '你好', 'xin chào', '老师好', 'chào cô'].some(k => q.includes(k))) {
+      replyData = {
+        text: '你好呀！我是小华老师。很高兴和你一起练习中文！你今天想聊些什么呢？',
+        pinyin: 'Nǐ hǎo ya! Wǒ shì Xiǎohuá lǎoshī. Hěn gāoxìng hé nǐ yìqǐ liànxí zhōngwén! Nǐ jīntiān xiǎng liáo xiē shénme ne?',
+        translation: 'Chào em nhé! Cô là cô giáo Tiểu Hoa. Rất vui được cùng em luyện tiếng Trung! Hôm nay em muốn trò chuyện về chủ đề gì nào?',
+        notes: '💡 Em có thể đáp lại: “老师好，今天我想练习口语” (Chào cô, hôm nay em muốn luyện khẩu ngữ).'
+      };
+    } else if (['hsk', 'ngữ pháp', 'nghe', 'nói', 'bí quyết', 'ôn thi', 'luyện thi', 'kỳ thi'].some(k => q.includes(k))) {
+      replyData = {
+        text: '学好中文的秘诀在于“多听、多读、敢说、不怕错”。每天坚持背单词，多和老师交流，不知不觉就能考过HSK了！',
+        pinyin: 'Xué hǎo zhōngwén de mìjué zàiyú “duō tīng, duō dú, gǎn shuō, bú pà cuò”. Měitiān jiānchí bèi dāncí, duō hé lǎoshī jiāoliú, bùzhī bùjué jiù néng kǎo guò HSK le!',
+        translation: 'Bí quyết học giỏi tiếng Trung là “nghe nhiều, đọc nhiều, dám nói, không sợ sai”. Mỗi ngày kiên trì học từ mới và giao lưu cùng cô, chẳng mấy chốc sẽ thi đỗ HSK thôi!',
+        notes: '💡 Cố gắng duy trì thói quen học 15 phút mỗi ngày với các chế độ game trong ứng dụng nhé!'
+      };
+    } else if (['cảm ơn', 'thank', '谢谢', 'tuyệt', 'giỏi'].some(k => q.includes(k))) {
+      replyData = {
+        text: '不客气！你的中文悟性很高，学习态度也非常认真。继续保持，老师随时为你解答问题！',
+        pinyin: 'Bú kèqi! Nǐ de zhōngwén wùxìng hěn gāo, xuéxí tàidu yě fēicháng rènzhēn. Jìxù bǎochí, lǎoshī suíshí wèi nǐ jiědá wèntí!',
+        translation: 'Không có chi em nhé! Khả năng cảm thụ tiếng Trung của em rất tốt, thái độ học tập cũng rất chăm chỉ. Tiếp tục phát huy, cô luôn sẵn sàng giải đáp cho em!',
+        notes: '💡 Đáp lại lời cảm ơn: 不客气 (Bú kèqi) hoặc 不用谢 (Bú yòng xiè).'
+      };
+    } else {
+      replyData = {
+        text: `你说得很好！“${userText}”。中文是一门很有魅力的语言，继续和老师聊聊你的日常生活或者爱好吧！`,
+        pinyin: `Nǐ shuō de hěn hǎo! “${userText}”. Zhōngwén shì yì mén hěn yǒu mèilì de yǔyán, jìxù hé lǎoshī liáo liáo nǐ de rìcháng shēnghuó huòzhě àihào ba!`,
+        translation: `Em nói hay lắm! “${userText}”. Tiếng Trung là một ngôn ngữ vô cùng cuốn hút, hãy tiếp tục tâm sự với cô về cuộc sống hàng ngày hoặc sở thích của em nào!`,
+        notes: '💡 Hãy thoải mái gõ chữ Hán hoặc Pinyin để luyện phản xạ nhé.'
+      };
+    }
+  }
+
+  // 2. BẠN THÂN TIỂU MINH (Friend)
+  else if (personaId === 'friend') {
+    if (['trà sữa', 'uống', '奶茶', 'café', 'cà phê', '喝'].some(k => q.includes(k))) {
+      replyData = {
+        text: '太赞了！我知道学校旁边有一家超好喝的奶茶店，波霸奶茶半糖微冰绝了！我请客，下课咱们走起！',
+        pinyin: 'Tài zàn le! Wǒ zhīdào xuéxiào pángbiān yǒu yì jiā chāo hǎohē de nǎichá diàn, bōbà nǎichá bàn táng wēi bīng jué le! Wǒ qǐngkè, xiàkè zánmen zǒuqǐ!',
+        translation: 'Tuyệt cú mèo! Mình biết ngay cạnh trường có quán trà sữa siêu ngon, trân châu nửa đường ít đá đỉnh chóp luôn! Mình bao, tan học lên đường thôi!',
+        notes: '💡 “走起 (zǒuqǐ)” là từ lóng giới trẻ Trung Quốc rất hay dùng, nghĩa là “lên đường thôi / đi nào!”'
+      };
+    } else if (['game', 'chơi', '打游戏', 'wán', 'chơi game', 'chán'].some(k => q.includes(k))) {
+      replyData = {
+        text: '哈哈，今晚必须开黑打两把！等我写完汉语作业就叫你，你技术行不行啊，可别坑我哦！',
+        pinyin: 'Hāhā, jīnwǎn bìxū kāihēi dǎ liǎng bǎ! Děng wǒ xiě wán hànyǔ zuòyè jiù jiào nǐ, nǐ jìshù xíng bu xíng a, kě bié kēng wǒ o!',
+        translation: 'Haha, tối nay nhất định phải leo rank vài ván! Đợi mình làm xong bài tập tiếng Trung sẽ ới cậu, tay nghề cậu ổn không đấy, đừng bóp mình nha!',
+        notes: '💡 “开黑 (kāihēi)” nghĩa là lập đội chơi game cùng bạn bè.'
+      };
+    } else if (['bài tập', 'mệt', 'nhiều', 'khó', '作业', '累'].some(k => q.includes(k))) {
+      replyData = {
+        text: '真的，这周生词太多了，背得我头疼！不过咱们互相打气，每天背20个，很快就能搞定！',
+        pinyin: 'Zhēn de, zhè zhōu shēngcí tài duō le, bèi de wǒ tóuténg! Búguò zánmen hùxiāng dǎqì, měitiān bèi èrshí gè, hěn kuài jiù néng gǎodìng!',
+        translation: 'Thật luôn, tuần này nhiều từ mới quá học nhức cả đầu! Cơ mà hai đứa mình cùng cố lên, mỗi ngày 20 từ là xử đẹp ngay thôi!',
+        notes: '💡 “互相打气 (hùxiāng dǎqì)” nghĩa là cổ vũ, động viên lẫn nhau.'
+      };
+    } else {
+      replyData = {
+        text: `哈哈，听你的！“${userText}”，哥们儿觉得挺有意思的。接下来咱们聊点啥？`,
+        pinyin: `Hāhā, tīng nǐ de! “${userText}”, gēmenr juéde tǐng yǒuyìsi de. Jiēxiàlái zánmen liáo diǎn shà?`,
+        translation: `Haha, nghe bạn đó! “${userText}”, mình thấy thú vị phết. Tiếp theo anh em mình tán dóc chuyện gì nữa nào?`,
+        notes: '💡 Cùng Tiểu Minh chém gió tự nhiên, sai ngữ pháp cậu ấy sẽ nhắc ngay.'
+      };
+    }
+  }
+
+  // 3. QUẢN LÝ TRƯƠNG (Boss)
+  else if (personaId === 'boss') {
+    if (['nghỉ', 'phép', 'xin nghỉ', '请假', 'bận', 'ốm'].some(k => q.includes(k))) {
+      replyData = {
+        text: '批准了。请在OA系统里提交请假单，并把手头紧急的工作和同事交接好。注意休息！',
+        pinyin: 'Pīzhǔn le. Qǐng zài OA xìtǒng lǐ tíjiāo qǐngjià dān, bìng bǎ shǒutóu jǐnjí de gōngzuò hé tóngshì jiāojiē hǎo. Zhùyì xiūxi!',
+        translation: 'Tôi duyệt đơn rồi. Hãy nộp đơn xin nghỉ trên hệ thống và bàn giao công việc khẩn cấp cho đồng nghiệp nhé. Nhớ nghỉ ngơi giữ gìn sức khỏe!',
+        notes: '💡 Mẫu câu xin phép công sở: “我想请假一天 (Tôi muốn xin nghỉ phép một ngày)”.'
+      };
+    } else if (['báo cáo', 'tiến độ', 'xong', 'hoàn thành', '报告', '完成'].some(k => q.includes(k))) {
+      replyData = {
+        text: '很好，这份汇报条理很清晰。请继续跟进后续进度，如果有任何资源需求，随时向我反馈。辛苦了！',
+        pinyin: 'Hěn hǎo, zhè fèn huìbào tiáolǐ hěn qīngxī. Qǐng jìxù gēnjìn hòuxù jìndù, rúguǒ yǒu rènhé zīyuán xūqiú, suíshí xiàng wǒ fǎnkuì. Xīnkǔ le!',
+        translation: 'Rất tốt, bản báo cáo này rất mạch lạc. Hãy tiếp tục bám sát tiến độ tiếp theo, nếu cần hỗ trợ nguồn lực gì hãy báo cho tôi. Vất vả cho bạn rồi!',
+        notes: '💡 Lời động viên chuẩn công sở: 辛苦了 (Xīnkǔ le - Bạn vất vả rồi!).'
+      };
+    } else if (['phỏng vấn', 'ứng tuyển', '面试', 'xin việc'].some(k => q.includes(k))) {
+      replyData = {
+        text: '欢迎你来面试。请向我简要介绍一下你的专业优势，以及你为什么对应聘我们公司的岗位感兴趣？',
+        pinyin: 'Huānyíng nǐ lái miànshì. Qǐng xiàng wǒ jiǎnyào jièshào yíxià nǐ de zhuānyè yōushì, yǐjí nǐ wèishénme duì yìngpìn wǒmen gōngsī de gǎngwèi gǎn xìngqù?',
+        translation: 'Hoan nghênh bạn đến phỏng vấn. Xin hãy giới thiệu ngắn gọn về ưu thế chuyên môn của bạn, và lý do bạn hứng thú ứng tuyển vị trí tại công ty chúng tôi?',
+        notes: '💡 Câu trả lời phỏng vấn nên dùng: “我的专业是... (Chuyên ngành của tôi là...)”.'
+      };
+    } else {
+      replyData = {
+        text: `好的，关于你提到的：“${userText}”，我认为逻辑很清晰。在商务沟通中，保持严谨与准确是极其重要的职业素养。`,
+        pinyin: `Hǎo de, guānyú nǐ tí dào de: “${userText}”, wǒ rènwéi luójí hěn qīngxī. Zài shāngwù gōutōng zhōng, bǎochí yánjǐn yǔ zhǔnquè shì jíqí zhòngyào de zhíyè sùyǎng.`,
+        translation: `Được rồi, về điều bạn nêu: “${userText}”, tôi thấy logic rất rõ ràng. Trong giao tiếp thương mại, duy trì sự nghiêm cẩn và chuẩn xác là phẩm chất nghề nghiệp quan trọng.`,
+        notes: '💡 Luyện tiếng Trung công sở giúp bạn tự tin làm việc trong môi trường đa quốc gia.'
+      };
+    }
+  }
+
+  // 4. CHỦ TIỆM LÃO VƯƠNG (Merchant)
+  else if (personaId === 'merchant') {
+    if (['mì', 'cơm', 'ăn', 'món', 'bánh bao', '面', '包子', '菜', '牛肉'].some(k => q.includes(k))) {
+      replyData = {
+        text: '好嘞！招牌牛肉面马上给你下锅，多放香菜少放辣！再来一笼热气腾腾的小笼包怎么样？保证你吃了还想吃！',
+        pinyin: 'Hǎo lei! Zhāopái niúròumiàn mǎshàng gěi nǐ xià guō, duō fàng xiāngcài shǎo fàng là! Zài lái yì lóng rèqì-téngténg de xiǎolóngbāo zěnmeyàng? Bǎozhèng nǐ chī le hái xiǎng chī!',
+        translation: 'Có ngay đây! Mì bò đặc biệt cho vào nồi ngay đây, nhiều rau mùi ít cay nhé! Thêm một lồng bánh bao tiểu long nóng hổi nữa không? Bảo đảm ăn là mê liền!',
+        notes: '💡 “好嘞 (Hǎo lei)” là câu cửa miệng hào sảng của các chủ tiệm ăn Trung Quốc khi nhận đơn.'
+      };
+    } else if (['tiền', 'đắt', 'rẻ', 'mặc cả', 'bớt', '多少钱', '贵', '便宜'].some(k => q.includes(k))) {
+      replyData = {
+        text: '哎呀你可真会砍价！两百块钱大叔真不挣钱啊，看你中文说得这么地道，亏本卖给你一件，交个朋友！',
+        pinyin: 'Āiyā nǐ kě zhēn huì kǎnjià! Liǎng bǎi kuài qián dàshū zhēn bù zhèngqián a, kàn nǐ zhōngwén shuō de zhè me dìdào, kuī běn mài gěi nǐ yí jiàn, jiāo ge péngyou!',
+        translation: 'Úi trời cháu khéo mặc cả thế! 200 tệ bác thực sự không có lãi đâu, nhưng thấy cháu nói tiếng Trung chuẩn vị thế này, bán lỗ cho cháu 1 cái để kết bạn luôn!',
+        notes: '💡 Mẹo mặc cả kinh điển: “能不能便宜一点？(Có thể rẻ hơn một chút không?)”.'
+      };
+    } else if (['tính tiền', 'thanh toán', 'quét mã', 'wechat', 'alipay', '买单', '结账'].some(k => q.includes(k))) {
+      replyData = {
+        text: '一共是三十五块钱。桌子上有微信和支付宝二维码，扫码就行！慢走啊，欢迎下次再来光临！',
+        pinyin: 'Yígòng shì sānshíwǔ kuài qián. Zhuōzi shang yǒu Wēixìn hé Zhīfùbǎo èrwéimǎ, sǎomǎ jiù xíng! Màn zǒu a, huānyíng xià cì zài lái guānglín!',
+        translation: 'Tổng cộng là 35 tệ nha. Trên bàn có mã QR WeChat và Alipay, quét mã là xong! Đi thong thả nhé, lần sau lại ghé quán bác!',
+        notes: '💡 “慢走 (Màn zǒu)” là câu chào tiễn khách lịch sự của người Trung Quốc, nghĩa là “Đi cẩn thận/thong thả nhé”.'
+      };
+    } else {
+      replyData = {
+        text: `好嘞！“${userText}”，大叔听明白了！来大叔这儿就像到家一样，想尝点什么还是挑点什么好货？`,
+        pinyin: `Hǎo lei! “${userText}”, dàshū tīng míngbai le! Lái dàshū zhèr jiù xiàng dào jiā yíyàng, xiǎng cháng diǎn shénme háishì tiāo diǎn shénme hǎo huò?`,
+        translation: `Được luôn! “${userText}”, bác nghe hiểu rồi! Đến chỗ bác cứ tự nhiên như ở nhà, muốn nếm thử món gì hay chọn món đồ gì nào?`,
+        notes: '💡 Thực hành giao tiếp đời sống thực tế với Lão Vương để tự tin đi du lịch Trung Quốc!'
+      };
+    }
+  }
+
+  // 5. HDV DU LỊCH TIỂU LINH (Guide)
+  else {
+    if (['đường', 'ga', 'sân bay', 'tàu điện', 'xe buýt', '地铁', '怎么走', '机场', '站'].some(k => q.includes(k))) {
+      replyData = {
+        text: '去目的地非常方便！往前直走两百米进地铁站，坐二号线在复兴门换乘一号线就能直达，全程大概二十分钟！',
+        pinyin: 'Qù mùdìdì fēicháng fāngbiàn! Wǎng qián zhí zǒu èrbǎi mǐ jìn dìtiě zhàn, zuò èr hào xiàn zài Fùxīngmén huànchéng yī hào xiàn jiù néng zhídá, quánchéng dàgài èrshí fēnzhōng!',
+        translation: 'Đi đến đó cực kỳ thuận tiện! Bạn đi thẳng 200m vào ga tàu điện ngầm, bắt tuyến số 2 đổi sang tuyến số 1 tại Phục Hưng Môn là tới thẳng, toàn bộ hành trình chỉ khoảng 20 phút!',
+        notes: '💡 Từ vựng chỉ đường: 直走 (đi thẳng), 换乘 (chuyển tuyến tàu).'
+      };
+    } else if (['vé', 'vé vào', 'giá vé', '门票', '故宫', 'thăm quan', 'tử cấm thành'].some(k => q.includes(k))) {
+      replyData = {
+        text: '故宫门票旺季60元，淡季40元，需要提前在官方微信小程序实名预约哦！记得带上护照，刷证件就能进！',
+        pinyin: 'Gùgōng ménpiào wàngjì liùshí yuán, dànjì sìshí yuán, xūyào tíqián zài guānfāng Wēixìn xiǎochéngxù shímíng yùyuē o! Jìde dài shang hùzhào, shuā zhèngjiàn jiù néng jìn!',
+        translation: 'Vé tham quan Tử Cấm Thành mùa cao điểm là 60 tệ, mùa thấp điểm 40 tệ, cần đặt trước bằng tên thật trên WeChat nhé! Nhớ mang theo hộ chiếu, quét giấy tờ là vào cổng được ngay!',
+        notes: '💡 “实名预约 (shímíng yùyuē)” nghĩa là đặt trước có định danh bằng tên thật.'
+      };
+    } else if (['phòng', 'khách sạn', 'đặt phòng', '预订', '酒店', '房间'].some(k => q.includes(k))) {
+      replyData = {
+        text: '没问题！我已经帮你登记好了一间大床房，含双人早餐。请出示护照办理入住手续，房卡给您，祝您旅途愉快！',
+        pinyin: 'Méi wèntí! Wǒ yǐjīng bāng nǐ dēngjì hǎo le yì jiān dàchuáng fáng, hán shuāngrén zǎocān. Qǐng chūshì hùzhào bànlǐ rùzhù shǒuxù, fángkǎ gěi nín, zhù nín lǚtú yúkuài!',
+        translation: 'Không thành vấn đề! Mình đã đăng ký giúp bạn một phòng giường đôi bao gồm bữa sáng. Xin bạn xuất trình hộ chiếu để làm thủ tục nhận phòng, thẻ phòng đây ạ, chúc bạn chuyến du lịch vui vẻ!',
+        notes: '💡 Mẫu câu khách sạn: “我想办理入住 (Tôi muốn làm thủ tục nhận phòng)”.'
+      };
+    } else {
+      replyData = {
+        text: `太棒了！关于你说的：“${userText}”，中国的风土人情真的很有魅力，小玲随时为你当向导，你想了解哪个城市的景点？`,
+        pinyin: `Tài bàng le! Guānyú nǐ shuō de: “${userText}”, Zhōngguó de fēngtǔ rénqíng zhēn de hěn yǒu mèilì, Xiǎolíng suíshí wèi nǐ dāng xiàngdǎo, nǐ xiǎng liǎojiě nǎge chéngshì de jǐngdiǎn?`,
+        translation: `Tuyệt vời quá! Về điều bạn vừa chia sẻ: “${userText}”, văn hóa du lịch Trung Quốc thực sự rất cuốn hút, Tiểu Linh sẵn sàng làm hướng dẫn viên cho bạn bất cứ lúc nào, bạn muốn tìm hiểu địa điểm ở thành phố nào nữa?`,
+        notes: '💡 Thực hành các câu hỏi đáp du lịch giúp bạn tự tin chu du khắp Trung Quốc!'
+      };
+    }
+  }
+  return {
+    text: replyData.text,
+    pinyin: replyData.pinyin,
+    translation: replyData.translation,
+    correction: grammarRes.hasError ? grammarRes : null,
+    notes: grammarRes.hasError ? `💡 Điểm cần sửa: ${grammarRes.explanation}` : replyData.notes
+  };
+}
+
+// Gọi API Gemini nếu có Custom Key
+async function callExternalAI(userText, apiKey, modelType, hskLevel, persona) {
   if (modelType === 'gemini') {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const systemPrompt = `Bạn là cô giáo Tiểu Hoa (小华老师) - một gia sư dạy tiếng Trung cực kỳ nhiệt tình, dịu dàng và thân thiện cho học viên người Việt Nam đang ôn thi HSK ${hskLevel}.
-Quy tắc trả lời:
-BẮT BUỘC trả về định dạng JSON hợp lệ duy nhất có cấu trúc:
+    const systemPrompt = `Bạn là trợ lý AI đóng vai nhân vật sau để luyện tiếng Trung với học viên Việt Nam (trình độ HSK ${hskLevel}):
+- Tên nhân vật: ${persona.name} (${persona.cnName})
+- Vai trò & Tính cách: ${persona.desc}
+- Phong cách giao tiếp: ${persona.tag}
+
+Học viên vừa gửi tin nhắn: "${userText}".
+
+NHIỆM VỤ:
+1. KIỂM TRA NGỮ PHÁP & CẤU TRÚC CÂU (kể cả Hán ngữ lẫn Pinyin):
+   - NẾU CÓ LỖI NGỮ PHÁP, LỖI TRẬT TỰ TỪ, DÙNG TỪ SAI HOẶC PINYIN SAI:
+     "correction": {
+       "hasError": true,
+       "errorSnippet": "Đoạn/từ bị sai",
+       "corrected": "Câu sửa lại chuẩn xác tự nhiên",
+       "explanation": "Giải thích ngắn gọn bằng tiếng Việt vì sao sai và quy tắc đúng"
+     }
+   - NẾU KHÔNG CÓ LỖI (học viên nói chuẩn hoặc gửi tiếng Việt):
+     "correction": null
+2. NHẬP VAI NHÂN VẬT ${persona.cnName} để phản hồi tự nhiên, chuẩn mực, sống động:
+   "text": "Câu thoại tiếp theo của nhân vật bằng chữ Hán giản thể",
+   "pinyin": "Phiên âm pinyin chuẩn có thanh điệu",
+   "translation": "Bản dịch tiếng Việt tự nhiên",
+   "notes": "Mẹo hữu ích hoặc lời động viên"
+
+BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ VỚI CẤU TRÚC:
 {
-  "text": "Câu trả lời bằng chữ Hán giản thể tự nhiên, phù hợp HSK ${hskLevel}",
-  "pinyin": "Phiên âm pinyin chuẩn có thanh điệu",
-  "translation": "Bản dịch nghĩa tiếng Việt tự nhiên, thân thiện",
-  "notes": "Lời khuyên ngữ pháp hoặc mẹo giao tiếp bổ ích (ngắn gọn 1-2 câu)"
-}
-Người học nói: "${userText}". Hãy trả lời ngay.`;
+  "correction": { ... } hoặc null,
+  "text": "...",
+  "pinyin": "...",
+  "translation": "...",
+  "notes": "..."
+}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -8656,7 +8991,7 @@ Người học nói: "${userText}". Hãy trả lời ngay.`;
 }
 
 // ==========================================
-// AI CHATBOT MODAL COMPONENT (TIỂU HOA 👩‍🏫)
+// AI CHATBOT MODAL COMPONENT (5 NHÂN VẬT ĐÓNG VAI)
 // ==========================================
 function AIChatModal({
   darkMode,
@@ -8665,13 +9000,19 @@ function AIChatModal({
   hskLevel,
   onGainXp
 }) {
+  const [selectedPersonaId, setSelectedPersonaId] = useState('teacher');
+  const currentPersona = useMemo(() => {
+    return AI_PERSONAS.find(p => p.id === selectedPersonaId) || AI_PERSONAS[0];
+  }, [selectedPersonaId]);
   const [messages, setMessages] = useState([{
     id: 'welcome',
     sender: 'ai',
-    text: '你好！我是小华老师。今天你想用中文聊些什么呢？',
-    pinyin: 'Nǐ hǎo! Wǒ shì Xiǎohuá lǎoshī. Jīntiān nǐ xiǎng yòng zhōngwén liáo xiē shénme ne?',
-    translation: 'Xin chào! Cô là cô giáo Tiểu Hoa. Hôm nay em muốn trò chuyện về chủ đề gì bằng tiếng Trung nào?',
-    notes: '💡 Em có thể gõ chữ Hán, Pinyin hoặc tiếng Việt, cô đều hiểu nhé! Bấm vào nút loa 🔊 để nghe phát âm.',
+    personaId: 'teacher',
+    text: AI_PERSONAS[0].welcomeMsg.text,
+    pinyin: AI_PERSONAS[0].welcomeMsg.pinyin,
+    translation: AI_PERSONAS[0].welcomeMsg.translation,
+    notes: AI_PERSONAS[0].welcomeMsg.notes,
+    correction: null,
     timestamp: Date.now()
   }]);
   const [inputText, setInputText] = useState('');
@@ -8688,22 +9029,25 @@ function AIChatModal({
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
-  const quickTopics = [{
-    label: '☕ Gọi trà sữa',
-    prompt: '老板，我想点一杯珍珠奶茶，半糖少冰。'
-  }, {
-    label: '✈️ Hỏi đường',
-    prompt: '请问去机场怎么走？'
-  }, {
-    label: '🛍️ Mặc cả giá',
-    prompt: '这件衣服多少钱？太贵了，能不能便宜一点？'
-  }, {
-    label: '🗣️ Tự giới thiệu',
-    prompt: '你好！我叫阿明，今年二十岁，很高兴认识你！'
-  }, {
-    label: '📖 Bí quyết HSK',
-    prompt: '老师，怎样才能提高汉语听力和口语水平？'
-  }];
+  const handleSelectPersona = personaId => {
+    if (personaId === selectedPersonaId) return;
+    if (!muted) sfx.click();
+    setSelectedPersonaId(personaId);
+    const newP = AI_PERSONAS.find(p => p.id === personaId) || AI_PERSONAS[0];
+
+    // Add welcoming message for new persona
+    setMessages(prev => [...prev, {
+      id: 'switch_' + Date.now(),
+      sender: 'ai',
+      personaId: newP.id,
+      text: newP.welcomeMsg.text,
+      pinyin: newP.welcomeMsg.pinyin,
+      translation: newP.welcomeMsg.translation,
+      notes: newP.welcomeMsg.notes,
+      correction: null,
+      timestamp: Date.now()
+    }]);
+  };
   const handleSendMessage = async textToSend => {
     const text = (textToSend || inputText).trim();
     if (!text || isTyping) return;
@@ -8721,35 +9065,39 @@ function AIChatModal({
       let replyData = null;
       if (apiKey.trim() && aiProvider === 'gemini') {
         try {
-          replyData = await callExternalAI(text, apiKey.trim(), 'gemini', hskLevel);
+          replyData = await callExternalAI(text, apiKey.trim(), 'gemini', hskLevel, currentPersona);
         } catch (e) {
           console.warn('Fallback to built-in AI:', e);
-          replyData = getBuiltInAIResponse(text, hskLevel);
+          replyData = getBuiltInAIResponse(text, hskLevel, selectedPersonaId);
         }
       } else {
-        // Built-in intelligent response engine
-        await new Promise(r => setTimeout(r, 600)); // Natural typing delay
-        replyData = getBuiltInAIResponse(text, hskLevel);
+        // Built-in intelligent response engine with grammar checker
+        await new Promise(r => setTimeout(r, 650));
+        replyData = getBuiltInAIResponse(text, hskLevel, selectedPersonaId);
       }
       const aiMsg = {
         id: 'ai_' + Date.now(),
         sender: 'ai',
+        personaId: selectedPersonaId,
         text: replyData.text,
         pinyin: replyData.pinyin,
         translation: replyData.translation,
+        correction: replyData.correction,
         notes: replyData.notes,
         timestamp: Date.now()
       };
       setMessages(prev => [...prev, aiMsg]);
       if (!muted) sfx.chat();
-      onGainXp(10); // Reward for practicing!
+      onGainXp(10);
     } catch (err) {
       setMessages(prev => [...prev, {
         id: 'err_' + Date.now(),
         sender: 'ai',
+        personaId: selectedPersonaId,
         text: '好的，我已经收到你的消息了！继续加油哦！',
         pinyin: 'Hǎo de, wǒ yǐjīng shōudào nǐ de xiāoxi le! Jìxù jiāyóu o!',
-        translation: 'Được rồi, cô đã nhận được tin nhắn của em rồi! Tiếp tục cố gắng nhé!',
+        translation: 'Được rồi, mình/cô đã nhận được tin nhắn của bạn/em rồi! Tiếp tục cố gắng nhé!',
+        correction: null,
         timestamp: Date.now()
       }]);
     } finally {
@@ -8764,9 +9112,9 @@ function AIChatModal({
     setShowSettings(false);
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md animate-fadeIn"
+    className: "fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md animate-fadeIn"
   }, /*#__PURE__*/React.createElement("div", {
-    className: `w-full max-w-2xl h-[92vh] sm:h-[85vh] rounded-3xl border flex flex-col shadow-2xl overflow-hidden transition-all ${darkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'}`
+    className: `w-full max-w-2xl h-[94vh] sm:h-[88vh] rounded-3xl border flex flex-col shadow-2xl overflow-hidden transition-all ${darkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'}`
   }, /*#__PURE__*/React.createElement("div", {
     className: `p-4 border-b flex items-center justify-between backdrop-blur-md ${darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'}`
   }, /*#__PURE__*/React.createElement("div", {
@@ -8774,8 +9122,8 @@ function AIChatModal({
   }, /*#__PURE__*/React.createElement("div", {
     className: "relative"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 via-red-500 to-amber-500 flex items-center justify-center text-white text-xl shadow-lg shadow-red-500/20 font-bold"
-  }, "\u534E"), /*#__PURE__*/React.createElement("span", {
+    className: `w-11 h-11 rounded-2xl bg-gradient-to-tr ${currentPersona.gradient} flex items-center justify-center text-white text-xl shadow-lg shadow-red-500/20 font-bold transition-all`
+  }, currentPersona.char), /*#__PURE__*/React.createElement("span", {
     className: "absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
@@ -8785,11 +9133,13 @@ function AIChatModal({
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "font-extrabold text-base sm:text-lg flex items-center gap-1.5"
-  }, "C\xF4 gi\xE1o Ti\u1EC3u Hoa (\u5C0F\u534E\u8001\u5E08)"), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-400 border border-red-500/30"
-  }, "HSK ", hskLevel, " Tutor")), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-emerald-400 font-medium flex items-center gap-1"
-  }, "\u25CF Tr\u1EF1c tuy\u1EBFn \xB7 S\u1EB5n s\xE0ng luy\u1EC7n kh\u1EA9u ng\u1EEF"))), /*#__PURE__*/React.createElement("div", {
+  }, currentPersona.name, " (", currentPersona.cnName, ")"), /*#__PURE__*/React.createElement("span", {
+    className: `text-[10px] font-bold px-2 py-0.5 rounded-full border ${currentPersona.badgeColor}`
+  }, currentPersona.role)), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 font-medium flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-400 font-bold"
+  }, "\u25CF Tr\u1EF1c tuy\u1EBFn"), " \xB7 ", currentPersona.desc))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1.5"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowSettings(!showSettings),
@@ -8803,7 +9153,22 @@ function AIChatModal({
     title: "\u0110\xF3ng chatbox"
   }, /*#__PURE__*/React.createElement(X, {
     className: "w-5 h-5"
-  })))), showSettings && /*#__PURE__*/React.createElement("div", {
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: `px-4 py-2 border-b flex items-center gap-2 overflow-x-auto no-scrollbar ${darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50 border-slate-200'}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement(Users, {
+    className: "w-3.5 h-3.5 text-rose-500"
+  }), " Nh\xE2n v\u1EADt:"), AI_PERSONAS.map(p => {
+    const isSelected = p.id === selectedPersonaId;
+    return /*#__PURE__*/React.createElement("button", {
+      key: p.id,
+      onClick: () => handleSelectPersona(p.id),
+      className: `shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${isSelected ? `bg-gradient-to-r ${p.gradient} text-white shadow-md shadow-red-500/20 scale-105 ring-1 ring-white/30` : darkMode ? 'bg-slate-800/80 hover:bg-slate-800 text-slate-400 border border-slate-700/60' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "w-4 h-4 rounded-md bg-black/20 flex items-center justify-center text-[10px] font-black"
+    }, p.char), /*#__PURE__*/React.createElement("span", null, p.name));
+  })), showSettings && /*#__PURE__*/React.createElement("div", {
     className: `p-4 border-b space-y-3 animate-fadeIn text-xs ${darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-100 border-slate-200'}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex justify-between items-center font-bold"
@@ -8812,7 +9177,7 @@ function AIChatModal({
     className: "text-slate-400 hover:underline"
   }, "\u0110\xF3ng")), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-400 leading-relaxed"
-  }, "M\u1EB7c \u0111\u1ECBnh \u1EE9ng d\u1EE5ng d\xF9ng **AI Offline t\xEDch h\u1EE3p s\u1EB5n** kh\xF4ng c\u1EA7n key. N\u1EBFu mu\u1ED1n AI th\xF4ng minh si\xEAu c\u1EA5p, b\u1EA1n c\xF3 th\u1EC3 nh\u1EADp Gemini API Key mi\u1EC5n ph\xED d\u01B0\u1EDBi \u0111\xE2y:"), /*#__PURE__*/React.createElement("div", {
+  }, "M\u1EB7c \u0111\u1ECBnh \u1EE9ng d\u1EE5ng d\xF9ng **AI Offline t\xEDch h\u1EE3p s\u1EB5n (5 Nh\xE2n v\u1EADt + B\u1ED9 ki\u1EC3m tra ng\u1EEF ph\xE1p)** kh\xF4ng c\u1EA7n key. N\u1EBFu mu\u1ED1n AI th\xF4ng minh si\xEAu c\u1EA5p, b\u1EA1n c\xF3 th\u1EC3 nh\u1EADp Gemini API Key mi\u1EC5n ph\xED d\u01B0\u1EDBi \u0111\xE2y:"), /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2"
   }, /*#__PURE__*/React.createElement("input", {
     type: "password",
@@ -8824,12 +9189,12 @@ function AIChatModal({
     onClick: () => saveSettings(apiKey, apiKey ? 'gemini' : 'builtin'),
     className: "px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold"
   }, "L\u01B0u"))), /*#__PURE__*/React.createElement("div", {
-    className: `px-4 py-2.5 border-b flex items-center gap-2 overflow-x-auto no-scrollbar ${darkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-slate-50 border-slate-100'}`
+    className: `px-4 py-2 border-b flex items-center gap-2 overflow-x-auto no-scrollbar ${darkMode ? 'bg-slate-900/30 border-slate-800/60' : 'bg-slate-50 border-slate-100'}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1"
   }, /*#__PURE__*/React.createElement(Lightbulb, {
     className: "w-3.5 h-3.5 text-amber-500"
-  }), " G\u1EE3i \xFD:"), quickTopics.map((topic, i) => /*#__PURE__*/React.createElement("button", {
+  }), " G\u1EE3i \xFD:"), currentPersona.quickTopics.map((topic, i) => /*#__PURE__*/React.createElement("button", {
     key: i,
     onClick: () => handleSendMessage(topic.prompt),
     className: `shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition hover:scale-105 active:scale-95 ${darkMode ? 'bg-slate-800 border-slate-700 hover:border-slate-600 text-slate-300' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'}`
@@ -8837,13 +9202,14 @@ function AIChatModal({
     className: "flex-1 overflow-y-auto p-4 space-y-4"
   }, messages.map(msg => {
     const isAI = msg.sender === 'ai';
+    const msgPersona = isAI ? AI_PERSONAS.find(p => p.id === msg.personaId) || currentPersona : null;
     return /*#__PURE__*/React.createElement("div", {
       key: msg.id,
       className: `flex items-start gap-2.5 ${isAI ? 'justify-start' : 'justify-end'}`
     }, isAI && /*#__PURE__*/React.createElement("div", {
-      className: "w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md"
-    }, "\u534E"), /*#__PURE__*/React.createElement("div", {
-      className: `max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 space-y-2 shadow-sm ${isAI ? darkMode ? 'bg-slate-800/90 border border-slate-700 text-slate-100' : 'bg-slate-100 border border-slate-200 text-slate-800' : 'bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-br-none shadow-md shadow-red-500/10'}`
+      className: `w-8 h-8 rounded-xl bg-gradient-to-tr ${msgPersona.gradient} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md`
+    }, msgPersona.char), /*#__PURE__*/React.createElement("div", {
+      className: `max-w-[88%] sm:max-w-[80%] rounded-2xl p-4 space-y-2 shadow-sm ${isAI ? darkMode ? 'bg-slate-800/90 border border-slate-700 text-slate-100' : 'bg-slate-100 border border-slate-200 text-slate-800' : 'bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-br-none shadow-md shadow-red-500/10'}`
     }, isAI ? /*#__PURE__*/React.createElement("div", {
       className: "space-y-2"
     }, /*#__PURE__*/React.createElement("div", {
@@ -8860,7 +9226,31 @@ function AIChatModal({
       className: "text-xs sm:text-sm font-semibold text-amber-400 tracking-wide"
     }, "[", msg.pinyin, "]"), msg.translation && /*#__PURE__*/React.createElement("div", {
       className: `text-xs sm:text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-700'}`
-    }, "\uD83C\uDDFB\uD83C\uDDF3 ", msg.translation), msg.notes && /*#__PURE__*/React.createElement("div", {
+    }, "\uD83C\uDDFB\uD83C\uDDF3 ", msg.translation), msg.correction && msg.correction.hasError && /*#__PURE__*/React.createElement("div", {
+      className: `mt-3 p-3.5 rounded-2xl border text-xs space-y-2 animate-fadeIn shadow-sm ${darkMode ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' : 'bg-amber-50 border-amber-300 text-amber-900'}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5 font-bold text-amber-500 text-xs uppercase tracking-wider"
+    }, /*#__PURE__*/React.createElement(AlertTriangle, {
+      className: "w-4 h-4 shrink-0 text-amber-500"
+    }), /*#__PURE__*/React.createElement("span", null, "Nh\u1EADn x\xE9t & S\u1EEDa l\u1ED7i ng\u1EEF ph\xE1p:")), /*#__PURE__*/React.createElement("div", {
+      className: "space-y-1.5 pl-5"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start gap-1.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold text-red-400 shrink-0"
+    }, "\u274C \u0110i\u1EC3m ch\u01B0a chu\u1EA9n:"), /*#__PURE__*/React.createElement("span", {
+      className: "line-through opacity-80"
+    }, msg.correction.errorSnippet)), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start gap-1.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold text-emerald-400 shrink-0"
+    }, "\u2705 N\xEAn s\u1EEDa th\xE0nh:"), /*#__PURE__*/React.createElement("span", {
+      className: "font-bold text-emerald-300"
+    }, msg.correction.corrected)), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-start gap-1.5 text-[11px] opacity-90 pt-0.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-semibold shrink-0"
+    }, "\uD83D\uDCA1 Gi\u1EA3i th\xEDch:"), /*#__PURE__*/React.createElement("span", null, msg.correction.explanation)))), msg.notes && !msg.correction?.hasError && /*#__PURE__*/React.createElement("div", {
       className: `mt-2 p-2.5 rounded-xl border text-xs leading-relaxed ${darkMode ? 'bg-slate-900/80 border-slate-700/60 text-slate-300' : 'bg-amber-50 border-amber-200 text-amber-900'}`
     }, msg.notes)) : /*#__PURE__*/React.createElement("div", {
       className: "text-sm sm:text-base font-medium"
@@ -8872,8 +9262,8 @@ function AIChatModal({
   }), isTyping && /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2 text-xs text-slate-400"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold"
-  }, "\u534E"), /*#__PURE__*/React.createElement("div", {
+    className: `w-7 h-7 rounded-xl bg-gradient-to-tr ${currentPersona.gradient} flex items-center justify-center text-white text-xs font-bold`
+  }, currentPersona.char), /*#__PURE__*/React.createElement("div", {
     className: `p-3 rounded-2xl flex items-center gap-1.5 ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-2 h-2 rounded-full bg-red-500 animate-bounce"
@@ -8883,7 +9273,7 @@ function AIChatModal({
     className: "w-2 h-2 rounded-full bg-rose-500 animate-bounce [animation-delay:0.4s]"
   }), /*#__PURE__*/React.createElement("span", {
     className: "ml-1 text-xs font-medium"
-  }, "C\xF4 gi\xE1o Ti\u1EC3u Hoa \u0111ang so\u1EA1n ph\u1EA3n h\u1ED3i..."))), /*#__PURE__*/React.createElement("div", {
+  }, currentPersona.name, " \u0111ang so\u1EA1n ph\u1EA3n h\u1ED3i..."))), /*#__PURE__*/React.createElement("div", {
     ref: messagesEndRef
   })), /*#__PURE__*/React.createElement("div", {
     className: `p-3 sm:p-4 border-t ${darkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200'}`
@@ -9019,7 +9409,7 @@ export default function App() {
     className: "hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition hover:scale-105 active:scale-95 bg-gradient-to-r from-red-500/20 via-rose-500/20 to-amber-500/20 border-red-500/30 text-rose-400 hover:text-rose-300"
   }, /*#__PURE__*/React.createElement(Bot, {
     className: "w-4 h-4 text-rose-500"
-  }), /*#__PURE__*/React.createElement("span", null, "Chat AI Ti\u1EC3u Hoa")), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("span", null, "Chat AI \u0110\xF3ng Vai \uD83C\uDFAD")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center border-l border-slate-700/50 pl-2 gap-1"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowStatsModal(true),
@@ -9109,7 +9499,7 @@ export default function App() {
     className: "w-6 h-6 animate-bounce"
   }), /*#__PURE__*/React.createElement("span", {
     className: "hidden sm:inline font-bold text-sm tracking-wide"
-  }, "Chat AI Ti\u1EC3u Hoa \uD83D\uDC69\u200D\uD83C\uDFEB"))), showStatsModal && /*#__PURE__*/React.createElement(StatsModal, {
+  }, "Chat AI \u0110\xF3ng Vai \uD83C\uDFAD"))), showStatsModal && /*#__PURE__*/React.createElement(StatsModal, {
     darkMode: darkMode,
     onClose: () => setShowStatsModal(false),
     xp: xp,
@@ -9170,10 +9560,10 @@ function HubView({
   }, {
     id: 'ai-chat',
     title: 'AI Đối Thoại (Chat Tutor)',
-    desc: 'Luyện khẩu ngữ 1-1 cùng cô giáo ảo Tiểu Hoa, sửa lỗi ngữ pháp & phát âm.',
+    desc: 'Đóng vai 5 nhân vật đa dạng, luyện giao tiếp Hán ngữ & Pinyin, sửa lỗi ngữ pháp & cấu trúc câu.',
     icon: Bot,
     color: 'from-rose-500 to-pink-600',
-    badge: 'Gia Sư AI'
+    badge: '5 Nhân Vật AI'
   }];
   const currentLevelWords = HSK_DATA[hskLevel] || [];
   const masteredInCurrentLevel = currentLevelWords.filter(w => masteredWords.has(w.id)).length;
@@ -9197,7 +9587,7 @@ function HubView({
     className: "px-3 py-1 text-xs font-bold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:scale-105 transition flex items-center gap-1"
   }, /*#__PURE__*/React.createElement(Bot, {
     className: "w-3.5 h-3.5"
-  }), " Chat c\xF9ng AI Ti\u1EC3u Hoa")), /*#__PURE__*/React.createElement("h2", {
+  }), " Chat AI \u0110\xF3ng Vai (5 Nh\xE2n V\u1EADt) \uD83C\uDFAD")), /*#__PURE__*/React.createElement("h2", {
     className: "text-2xl sm:text-4xl font-extrabold tracking-tight"
   }, "Chinh Ph\u1EE5c HSK ", hskLevel, " C\xF9ng AI!"), /*#__PURE__*/React.createElement("p", {
     className: `${darkMode ? 'text-slate-400' : 'text-slate-600'} text-sm sm:text-base leading-relaxed`
